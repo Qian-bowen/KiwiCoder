@@ -1,2 +1,2 @@
 # KiwiCoder
-A biology IDE with a compiler
+A biology compiler with debugger for biological experiments.
