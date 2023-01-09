@@ -1,7 +1,7 @@
-#include<string>
-
 #ifndef Kiwi_OBJECT_H
 #define Kiwi_OBJECT_H
+
+#include<string>
 
 class KiwiTypeObject{
     std::string tp_name;

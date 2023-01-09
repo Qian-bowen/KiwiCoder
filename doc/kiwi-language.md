@@ -2,7 +2,9 @@
 
 Kiwi语言会支持生物实验标准API（Standard Bio Experiment API，BES），用户可以通过Kiwi来编写实验流程。需要编写在一个文件中，文件名以.kw结尾。部分SBE有默认的内置实现，部分没有。
 
-用户标注需要自己实现的SBE，KiwiCoder会生成用C语言编写的RPC脚手架代码，用户导出该框架，实现对应函数即可。
+用户标注需要自己实现的SBE，KiwiCoder会用rpcgen（python）生成用Python或C语言编写的RPC脚手架代码，用户导出该框架，实现对应函数即可。
+
+RPC 框架代码包含两部分，RPC和Mock RPC，对应实际运行和模拟运行功能。用户可以根据需求实现。
 
 KiwiCoder会将kw文件编译成字节码运行。
 

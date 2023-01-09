@@ -1,7 +1,7 @@
-#include "object.h"
-
 #ifndef Kiwi_BIOOBJECT_H
 #define Kiwi_BIOOBJECT_H
+
+#include "kiwi-core/include/object.h"
 
 class KiwiBioObject:public KiwiObject{
     
