@@ -1,6 +1,14 @@
+#include<nlohmann/json.hpp>
 
+static void Usage(){
 
-static void usage(){
+}
+
+static void ReadJsonFile(){
+
+}
+
+static void GenerateFramework(){
 
 }
 

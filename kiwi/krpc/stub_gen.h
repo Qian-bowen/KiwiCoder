@@ -3,18 +3,19 @@
 
 #include <string>
 #include <vector>
+#include "kiwi/include/file.h"
 
 struct ServiceInfo{
     std::string name;
 };
 
-class StubGen{
+class StubGen: public FileGenerator{
 public:
     explicit StubGen(){}
     virtual ~StubGen() = default;
 
-    virtual std::string GenStub() = 0;
-    virtual std::string GenStubClassName() = 0;
+    virtual void GenStub() = 0;
+
 protected:
     ServiceInfo service_info;
 

@@ -1,14 +1,14 @@
 #ifndef KRPC_CLIENTSTUBGEN_H
 #define KRPC_CLIENTSTUBGEN_H
 
-#include "kiwi/krpc/stub/stub_gen.h"
+#include "kiwi/krpc/stub_gen.h"
 
 class ClientStubGen:public StubGen{
 public:
     explicit ClientStubGen():StubGen(){}
 
-    std::string GenStub() override;
-    std::string GenStubClassName() override;
+    virtual void GenStub() override;
+
 private:
     inline std::string GenMacroName();
 

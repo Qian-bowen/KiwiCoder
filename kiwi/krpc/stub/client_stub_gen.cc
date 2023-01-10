@@ -1,7 +1,7 @@
 #include "kiwi/include/util.h"
 #include "kiwi/krpc/stub/client_stub_gen.h"
 
-std::string ClientStubGen::GenStub(){
+void ClientStubGen::GenStub(){
 
 }
 
