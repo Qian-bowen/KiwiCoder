@@ -1,18 +1,17 @@
 # Kiwi Language Design
 
-Kiwi语言会支持生物实验标准API（Standard Bio Experiment API，BES），用户可以通过Kiwi来编写实验流程。需要编写在一个文件中，文件名以.kw结尾。部分SBE有默认的内置实现，部分没有。
+Kiwi：生物实验语言，用代码描述实验流程。Kiwi是动态语言，编译成字节码，运行在虚拟机中。
 
-用户标注需要自己实现的SBE，KiwiCoder会用rpcgen（python）生成用Python或C语言编写的RPC脚手架代码，用户导出该框架，实现对应函数即可。
+Kiwi-native：描述实验流程的自然语言，可以由Kiwi语言生成。
 
-RPC 框架代码包含两部分，RPC和Mock RPC，对应实际运行和模拟运行功能。用户可以根据需求实现。
+SBE：生物实验标准API（SBE），是一套定义的标准接口。
 
-KiwiCoder会将kw文件编译成字节码运行。
+Kiwi-IDL：用Json格式记录的SBE函数，rpcgen工具可以根据IDL生成RPC框架。
 
-KiwiCoder可以导出一份report文件，文件中是自然语言描述的实验流程。
+krpc：RPC框架生成工具，用于实验设备与控制代码交互。
 
-Kiwi最大的优势是将实验的代码描述、自然语言描述相结合，将代码逻辑与边缘设备的逻辑实现进行解耦。
+Kdb：Kiwi语言的调试工具。
 
+KiwiWatch：实验监控系统，有UI界面。
 
-
-bes列表
-
+KiwiCoder：包含上述程序的开发工具。
