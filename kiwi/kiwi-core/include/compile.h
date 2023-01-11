@@ -1,7 +1,8 @@
-#include "object.h"
-
 #ifndef Kiwi_COMPILE_H
 #define Kiwi_COMPILE_H
+
+#include "kiwi/kiwi-core/include/object.h"
+
 
 /**
  * @brief byte code object

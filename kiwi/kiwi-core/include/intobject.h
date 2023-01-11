@@ -1,7 +1,7 @@
-#include "object.h"
-
 #ifndef Kiwi_INTOBJECT_H
 #define Kiwi_INTOBJECT_H
+
+#include "kiwi/kiwi-core/include/object.h"
 
 class KiwiIntObject:public KiwiObject{
     long long ob_ival;
