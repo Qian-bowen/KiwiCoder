@@ -1,6 +1,6 @@
 # Kiwi Infra Design
 
-Kiwi语言会支持生物实验标准API（Standard Bio Experiment API，SBE），用户可以通过Kiwi来编写实验流程。需要编写在一个文件中，文件名以.kw结尾。部分SBE有默认的内置实现，部分没有。
+Kiwi语言会支持生物实验标准API（Standard Bio Experiment API，SBE），用户可以通过Kiwi来编写实验流程。需要编写在一个文件中，文件名以.kw结尾。部分SBE有默认的内置实现，有同步、异步、流式三种模式。
 
 用户标注需要自己实现的SBE，KiwiCoder会用rpcgen（python）生成用Python或C语言编写的RPC脚手架代码，用户导出该框架，实现对应函数即可。
 

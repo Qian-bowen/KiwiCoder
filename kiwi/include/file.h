@@ -10,4 +10,19 @@ public:
 
 };
 
+class StreamWriter{
+public:
+    bool Write(const std::string &source, int fd);
+};
+
+class StreamReader{
+public:
+    StreamReader(unsigned int bufer_size);
+    virtual ~StreamReader();
+    bool Read(std::string &target, int fd, char delimiter);
+private:
+    unsigned int bufer_size;
+    char *buffer;
+};
+
 #endif

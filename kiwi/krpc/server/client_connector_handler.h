@@ -5,7 +5,7 @@
 
 
 class IProtocolHandler{
-    public:
+public:
     IProtocolHandler()=default;
     virtual ~IProtocolHandler()=default;
 
