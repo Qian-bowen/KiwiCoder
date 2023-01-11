@@ -1,7 +1,8 @@
-#ifndef Kiwi_SCHEMA_H
-#define Kiwi_SCHEMA_H
+#ifndef Kiwi_PROCEDURE_H
+#define Kiwi_PROCEDURE_H
 
 #include<nlohmann/json.hpp>
+#include<string>
 
 using json = nlohmann::json;
 
@@ -23,10 +24,11 @@ using json = nlohmann::json;
 //   ]
 // }
 
-// Convert RPC Json string to Json object
-json ParseProtoRPC(std::string proto_str);
+class Procedure{
+public:
+    const std::string& GetProcedureName()const;
+    
 
-// Validate Json object based on schema
-bool ValidateProtoRPC(json proto_json);
+};
 
 #endif

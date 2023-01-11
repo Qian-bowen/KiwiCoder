@@ -15,3 +15,5 @@ Kdb：Kiwi语言的调试工具。
 KiwiWatch：实验监控系统，有UI界面。
 
 KiwiCoder：包含上述程序的开发工具。
+
+同名SBE函数生成的Kiwi-IDL中，它们对应的rpc方法是不同的，因为SBE名字相同，但可以由不用硬件实现。
