@@ -2,21 +2,13 @@
 #define KRPC_ABSTRACTSERVER_H
 
 #include "kiwi/include/procedure.h"
-#include "connector.h"
+#include "base_server.h"
+#include "invoke_handler.h"
+#include "rpc_protocol.h"
 #include<map>
 
-class IProcedureInvocationHandler{
-public:
-    explicit IProcedureInvocationHandler();
-    virtual ~IProcedureInvocationHandler(){}
-
-    virtual void HandleMethodCall(Procedure &proc, const json &input, json &output) = 0;
-    virtual void HandleNotificationCall(Procedure &proc, const json &input) = 0;
-
-};
-
 template<class T>
-class AbstructServer:public IProcedureInvocationHandler{
+class AbstructServer:InvokeHandler{
     typedef void (T::*methodPtr_t)(const json &params,json &result);
     typedef void (T::*notificationPtr_t)(const json &params);
 public:
@@ -28,12 +20,12 @@ public:
     bool StartListening() { return connection.StartListening(); }
     bool StopListening() { return connection.StopListening(); }
 
-    virtual void HandleMethodCall(Procedure &proc, const json &input, json &output){
+    virtual void HandleMethodCall(Procedure &proc, const json &input, json &output)override{
         T *instance = dynamic_cast<T *>(this);
         (instance->*methods[proc.GetProcedureName()])(input,output);
     }
 
-    virtual void HandleNotificationCall(Procedure &proc, const json &input){
+    virtual void HandleNotificationCall(Procedure &proc, const json &input)override{
          T *instance = dynamic_cast<T *>(this);
         (instance->*notifications[proc.GetProcedureName()])(input);
     }
@@ -50,8 +42,8 @@ protected:
     }
 
 private:
-    AbstractServerConnector &connection;
-    std::shared_ptr<IProtocolHandler> handler;
+    BaseServer &connection;
+    std::shared_ptr<BaseProtocolHandler> handler;
     std::map<std::string,methodPtr_t> methods;
     std::map<std::string,notificationPtr_t> notifications;
 };
