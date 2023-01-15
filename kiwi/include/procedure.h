@@ -3,6 +3,7 @@
 
 #include<nlohmann/json.hpp>
 #include<string>
+#include "kiwi/include/types.h"
 
 using json = nlohmann::json;
 
@@ -27,7 +28,7 @@ using json = nlohmann::json;
 class Procedure{
 public:
     const std::string& GetProcedureName()const;
-    
+    procedure_t GetProcedureType()const;
 
 };
 

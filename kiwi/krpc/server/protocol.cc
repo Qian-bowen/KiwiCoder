@@ -1,5 +1,6 @@
 #include "protocol.h"
 #include "kiwi/include/error.h"
+#include "kiwi/include/constants.h"
 #include<sstream>
 
 BaseProtocolHandler::BaseProtocolHandler(InvokeHandler &handler):handler(handler){
@@ -25,10 +26,17 @@ void BaseProtocolHandler::AddProcedure(const Procedure &procedure){
     this->procedures[procedure.GetProcedureName()]=procedure;
 }
 
-void BaseProtocolHandler::HandleRequestWrap(const json &request,json& response){
-    // handler common wrapper, e.g rpc type
+void BaseProtocolHandler::ProcessHandleRequest(const json &request,json& response){
+    // TODO: handler common wrapper, e.g rpc type
+    Procedure &method = this->procedures[request["method"].get<std::string>()];
+    if(method.GetProcedureType()==RPC_METHOD){
+        this->handler.HandleMethodCall(method,request[RPC_KEY_REQUEST_METHODNAME],response);
+    }else{
+        this->handler.HandleNotificationCall(method,request[RPC_KEY_REQUEST_METHODNAME]);
+    }
 }
 
-void BaseProtocolHandler::ValidateRequestWrap(const json &request){
-    // Validate commom wrapper
+int BaseProtocolHandler::ValidateRequest(const json &request){
+    // TODO: Validate commom wrapper
+    return Errors::ERROR_NOT_EXIST;
 }

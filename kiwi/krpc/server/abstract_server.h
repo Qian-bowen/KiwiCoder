@@ -5,6 +5,7 @@
 #include "base_server.h"
 #include "invoke_handler.h"
 #include "rpc_protocol.h"
+#include "protocol_factory.h"
 #include<map>
 
 template<class T>
@@ -12,8 +13,9 @@ class AbstructServer:InvokeHandler{
     typedef void (T::*methodPtr_t)(const json &params,json &result);
     typedef void (T::*notificationPtr_t)(const json &params);
 public:
-    explicit AbstructServer(AbstractServerConnector &connector):connection(connector),handler(new RPCProtocolHandler()){
-        connection.SetHandler(handler);
+    explicit AbstructServer(BaseServer &connector, procedure_t protocol_type):connection(connector){
+        this->handler=ProtocolFactory::CreateProtocolHandler(protocol_type,*this);
+        connection.SetHandler(this->handler);
     }
     virtual ~AbstructServer()=default;
 

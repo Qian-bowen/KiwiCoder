@@ -17,11 +17,11 @@ public:
 
 class StreamReader{
 public:
-    StreamReader(unsigned int bufer_size);
+    StreamReader(unsigned int buffer_size);
     virtual ~StreamReader();
     bool Read(std::string &target, int fd, char delimiter);
 private:
-    unsigned int bufer_size;
+    unsigned int buffer_size;
     char *buffer;
 };
 

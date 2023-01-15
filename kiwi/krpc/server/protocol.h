@@ -15,18 +15,18 @@ public:
     void AddProcedure(const Procedure &procedure);
 
     virtual void HandleJsonRequest(const json &request,json& response) = 0;
-    virtual void ValidateRequest(const json &request) = 0;
+    virtual bool ValidateRequestField(const json &request) = 0;
 
     virtual void WrapResult(const json& resquest,json &response, json &ret) = 0;
     virtual void WrapError(const json& resquest,int code,const std::string &message, json &ret) = 0;
-    virtual void WrapException(const json& resquest,const KiwiException &exception, json &ret);
+    virtual void WrapException(const json& resquest,const KiwiException &exception, json &ret) = 0;
 
 protected:
     InvokeHandler &handler;
     std::map<std::string,Procedure> procedures;
 
-    void HandleRequestWrap(const json &request,json& response);
-    void ValidateRequestWrap(const json &request);
+    void ProcessHandleRequest(const json &request,json& response);
+    int ValidateRequest(const json &request);
 };
 
 #endif
