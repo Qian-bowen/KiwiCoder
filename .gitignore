@@ -34,3 +34,5 @@
 *.vscode
 
 build/
+.idea/
+.pytest_cache/

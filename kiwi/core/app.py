@@ -1,6 +1,5 @@
-from .bio import Bio
 
-class KiWiCoder(Bio):
+class KiwiCoder:
 
     def run(self) -> None:
         """

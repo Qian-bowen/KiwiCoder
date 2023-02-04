@@ -1,14 +1,14 @@
-class Envirnment():
 
-class Runtime():
-    def prepare():
+
+class Runtime:
+    def prepare(self):
         pass
 
-    def shutdown():
+    def shutdown(self):
         pass
 
-    def get_status():
+    def get_status(self):
         pass
 
-    def send_signal(msg:str):
+    def send_signal(self, msg:str):
         pass
