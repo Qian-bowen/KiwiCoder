@@ -45,6 +45,11 @@ class Runtime:
 
     def run(self):
         """event loop, receive msg and send signal"""
+
+    def prepare(self):
+        pass
+
+    def shutdown(self):
         pass
 
     def get_status(self):
@@ -53,3 +58,4 @@ class Runtime:
     def _send_signal(self, from_id: int, to_id: int, seq_num: int, msg: str):
         """signal can only be send to bio object with receive connector"""
         pass
+
