@@ -13,6 +13,7 @@ class BioObject(metaclass=ABCMeta):
         self.bio_type = None
         self.id = None
         self.mock = mock
+        self.status = False
 
     def get_id(self) -> None:
         return self.id
@@ -22,3 +23,19 @@ class BioObject(metaclass=ABCMeta):
 
     def is_mock(self) -> bool:
         return self.mock
+
+    def input(self, in_msg: str, stream=False, connector=None):
+        """
+        receive msg from other object
+        if connector does not exist, just set the msg;
+        or receive from connector until end
+        """
+        pass
+
+    def output(self, stream=False, connector=None) -> str:
+        """
+        send msg to other object
+        if connector does not exist, just return the msg;
+        or send the message through connector
+        """
+        pass
