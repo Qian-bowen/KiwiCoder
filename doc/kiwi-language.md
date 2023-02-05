@@ -6,8 +6,6 @@ Kiwi-native：描述实验流程的自然语言，可以由Kiwi语言生成。
 
 SBE：生物实验标准API（SBE），是一套定义的标准接口。
 
-Kiwi-IDL：用Json格式记录的SBE函数，rpcgen工具可以根据IDL生成RPC框架。
-
 krpc：RPC框架生成工具，用于实验设备与控制代码交互。
 
 Kdb：Kiwi语言的调试工具。
