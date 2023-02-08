@@ -1,4 +1,4 @@
-from .exception import NodeNotFoundException
+from kiwi.common.exception import NodeNotFoundException
 from typing import List
 
 
@@ -28,7 +28,7 @@ class TreeAryN:
                 return result
         return None
 
-    def add_node(self, new_node, parent_key=None):
+    def add_node(self, new_node, parent_key=None) -> None:
         if parent_key is None:
             self.root = new_node
         else:

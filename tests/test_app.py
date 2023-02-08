@@ -1,16 +1,15 @@
 import pytest
-from kiwi.core import KiwiCoder,BioObject,bio_obj_mock
-from abc import ABC
-
-@bio_obj_mock
-def mock_obj():
+from kiwi.apps import KiwiCoder, Step
 
 
 def test_app_config():
-    app = KiwiCoder()
-    b = BioObject
+    kiwi = KiwiCoder()
 
-    b.is_mock()
+    Step("step 1", "sn:1")
+    Step("step 1.1", "sn:1.1")
+    Step("step 1.2", "sn:1.2")
+    Step("step 2", "sn:2")
+    Step("step 2.1", "sn:2.1")
+    Step("step 2.1.1", "sn:2.1.1")
 
-
-    # BioObject b
+    kiwi.run()

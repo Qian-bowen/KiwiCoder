@@ -40,3 +40,18 @@ def with_defer(func):
             return func(*args, **kwargs)
 
     return __wrap__
+
+
+def singleton(cls, *args, **kw):
+    _instance = {}
+
+    def __wrapper__():
+        if cls not in _instance:
+            _instance[cls] = cls(*args, **kw)
+        return _instance[cls]
+
+    return __wrapper__
+
+
+def sort_default(origin_list: []):
+    origin_list.sort()
