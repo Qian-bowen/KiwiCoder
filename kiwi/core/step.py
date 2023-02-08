@@ -1,5 +1,6 @@
 from kiwi.util import TreeNode, TreeAryN
-from kiwi.common import sort_default
+from kiwi.common import sort_default, singleton
+from typing import List
 
 
 class Step(TreeNode):
@@ -12,7 +13,7 @@ class Step(TreeNode):
         """
             step_num: step hierarchy, e.g. 1.2.1
         """
-        super().__init__(step_num)
+        super().__init__(key=step_num)
         self.step_num = step_num
         self.wait_list = wait_list
         self.children_parallel_list = children_parallel_list
@@ -23,7 +24,13 @@ class Step(TreeNode):
 
     @staticmethod
     def parent_step(step_num: str) -> str:
-        return ""
+        seq_nums_list = step_num.split('.')
+        if len(seq_nums_list) == 1:
+            return "0"
+        parent_key = ""
+        for i in range(0, len(seq_nums_list) - 1):
+            parent_key += seq_nums_list[i] + "."
+        return parent_key[:-1]
 
 
 class StepController:
@@ -37,6 +44,16 @@ class StepController:
         parent_step_key = Step.parent_step(step.step_num)
         self.step_tree.add_node(step, parent_step_key)
 
+    def add_step_list(self, steps: List[Step]):
+        for step in steps:
+            parent_step_key = Step.parent_step(step.step_num)
+            self.step_tree.add_node(step, parent_step_key)
+
     def _build_step_graph(self) -> None:
         if self.step_graph is not None:
             return
+
+    def print_step_tree(self):
+        print("\n===================step tree===================")
+        print(self.step_tree)
+        print("=================step tree end=================\n")

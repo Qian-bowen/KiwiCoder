@@ -2,7 +2,7 @@ from kiwi.common.exception import NodeNotFoundException
 from typing import List
 
 
-class TreeNode:
+class TreeNode(object):
     def __init__(self, key, children=None):
         if children is None:
             children = []
@@ -11,6 +11,9 @@ class TreeNode:
 
     def __str__(self):
         return str(self.key)
+
+    def __lt__(self, other):
+        return self.key < other.key
 
 
 class TreeAryN:
@@ -32,7 +35,7 @@ class TreeAryN:
         if parent_key is None:
             self.root = new_node
         else:
-            parent_node = self.find_node(new_node, parent_key)
+            parent_node = self.find_node(self.root, parent_key)
             if parent_node is None:
                 raise NodeNotFoundException('add node fail, parent not find')
             parent_node.children.append(new_node)
