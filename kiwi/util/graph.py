@@ -1,6 +1,6 @@
 from collections import deque, OrderedDict
 from threading import Lock
-from .common import with_defer, defer
+from kiwi.common.common import with_defer, defer
 
 
 class DAG:

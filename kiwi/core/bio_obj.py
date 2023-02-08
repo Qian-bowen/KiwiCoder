@@ -15,7 +15,6 @@ class BioObject(metaclass=ABCMeta):
         self.mock = mock
         self.status = False
 
-
     def get_id(self) -> None:
         return self.id
 

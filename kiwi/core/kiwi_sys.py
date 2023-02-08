@@ -1,21 +1,43 @@
 from .bio_obj import BioObject
 from typing import Dict
 from .sched import Scheduler
+from kiwi.common import singleton, ConstWrapper
+from .step import Step, StepController
 
 
+@singleton
+class GenericEnv:
+    """GenericEnv class handles user defined wrapper, and makes a basic environment"""
+
+    def __init__(self):
+        self.wrappers = []
+        self.steps_generic = []
+
+    def append_wrapper(self, wrapper, *args, **kwargs):
+        self.wrappers.append(wrapper)
+        self._wrapper2core(*args, **kwargs, wrapper=wrapper)
+
+    def _wrapper2core(self, wrapper, *args, **kwargs):
+        if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
+            step = Step(*args, **kwargs)
+            self.steps_generic.append(step)
+            return step
+
+
+@singleton
 class SysLoader:
     def __init__(self):
         self.obj_map = Dict[int, BioObject]
         self.obj_relation = Dict[BioObject, BioObject]
         self.step_scheduler = Scheduler()
-        pass
+        self.step_controller = StepController()
 
     def build_sys(self):
         """prepare the system"""
+        self._scan_env()
         pass
 
     def shutdown_sys(self):
-        """prepare the system"""
         pass
 
     def _scan_process(self):
@@ -30,13 +52,18 @@ class SysLoader:
         """check reagents"""
         pass
 
-    def _build_view(self):
-        """build the relationship view of all bio objects"""
-        pass
+    def _scan_env(self):
+        for wrapper in GenericEnv().wrappers:
+            if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
+                pass
+        self.step_controller.add_step_list(GenericEnv().steps_generic)
 
     def _build_connectors(self):
         """build the message system"""
         pass
+
+    def print_sys_init_log(self):
+        self.step_controller.print_step_tree()
 
 
 class Runtime:
@@ -58,4 +85,3 @@ class Runtime:
     def _send_signal(self, from_id: int, to_id: int, seq_num: int, msg: str):
         """signal can only be send to bio object with receive connector"""
         pass
-
