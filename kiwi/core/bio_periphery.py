@@ -7,7 +7,6 @@ class Periphery(BioObject):
     def __init__(self, mock=False):
         super().__init__(mock=mock)
 
-
     @abstractmethod
     def start(self):
         pass
@@ -18,6 +17,8 @@ class Periphery(BioObject):
 
 
 class ControlPeriphery(Periphery):
+    """ center hardware that controls other periphery, e.g. Raspberry Pi"""
+
     def __init__(self, mock=False):
         super().__init__(mock=mock)
 
@@ -31,6 +32,8 @@ class ControlPeriphery(Periphery):
 
 
 class InstrumPeriphery(Periphery):
+    """ bio instruments, e.g. PCR """
+
     def __init__(self, mock=False):
         super().__init__(mock=mock)
 

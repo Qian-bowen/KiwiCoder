@@ -15,7 +15,8 @@ class Wrapper:
 class Step(Wrapper):
     def __init__(self, comment: str, step_spec=""):
         step_num, wait_list, parallel_list = Step._parse_step_spec(step_spec)
-        super().__init__(step_num=step_num, wait_list=wait_list, children_parallel_list=parallel_list, wrapper_type=ConstWrapper.STEP_WRAPPER)
+        super().__init__(step_num=step_num, wait_list=wait_list, children_parallel_list=parallel_list,
+                         wrapper_type=ConstWrapper.STEP_WRAPPER)
         self.comment = comment
         self.step_spec = step_spec
 
@@ -51,7 +52,22 @@ class Step(Wrapper):
         return sn, wt, cp
 
 
+class ControlPeriphery(Wrapper):
+    def __init__(self, comment: str, plugin=None):
+        super().__init__()
+
+
+class Container(Wrapper):
+    def __init__(self):
+        pass
+
+
 class Operation(Wrapper):
     def __init__(self):
         super().__init__()
+        pass
+
+
+class Vol(Wrapper):
+    def __init__(self):
         pass
