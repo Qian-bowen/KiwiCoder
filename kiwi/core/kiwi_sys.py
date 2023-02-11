@@ -3,7 +3,6 @@ from typing import Dict
 from .sched import Scheduler
 from kiwi.common import singleton, ConstWrapper
 from .step import Step, StepController
-from queue import Queue
 
 
 @singleton
@@ -59,12 +58,8 @@ class SysLoader:
                 pass
         self.step_controller.add_step_list(GenericEnv().steps_generic)
 
-    def _build_connectors(self):
-        """build the message system"""
+    def topology_view(self):
         pass
 
     def print_sys_init_log(self):
         self.step_controller.print_step_tree()
-
-
-

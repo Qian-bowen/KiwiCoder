@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 from .bio_obj import BioObject
 
 

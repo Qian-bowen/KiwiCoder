@@ -13,8 +13,13 @@ class EventBus:
         self.events = defaultdict(set)
         self.que = Queue()
         self.worker_num = worker_num
+        self.worker_pool = []
         for i in range(self.worker_num):
             self._init_worker()
+
+    def __del__(self):
+        for worker in self.worker_pool:
+            worker.join()
 
     def _init_worker(self) -> None:
         def _worker_run(que: Queue) -> None:
@@ -23,6 +28,7 @@ class EventBus:
                 que.task_done()
 
         worker = Thread(target=_worker_run, args=(self.que,))
+        self.worker_pool.append(worker)
         worker.setDaemon(True)
         worker.start()
 

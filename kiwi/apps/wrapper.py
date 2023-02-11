@@ -52,19 +52,23 @@ class Step(Wrapper):
         return sn, wt, cp
 
 
-class ControlPeriphery(Wrapper):
+class Hardware(Wrapper):
+    def __init__(self, comment: str, plugin=None):
+        super().__init__()
+
+
+class ControlHardware(Wrapper):
+    def __init__(self, comment: str, plugin=None):
+        super().__init__()
+
+
+class MeasureHardware(Wrapper):
     def __init__(self, comment: str, plugin=None):
         super().__init__()
 
 
 class Container(Wrapper):
     def __init__(self):
-        pass
-
-
-class Operation(Wrapper):
-    def __init__(self):
-        super().__init__()
         pass
 
 

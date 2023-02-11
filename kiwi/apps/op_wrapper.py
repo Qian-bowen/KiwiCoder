@@ -21,5 +21,5 @@ def mock():
     return __outer_wrapper__
 
 
-def measure_fluid(from_container: Container, to_container: Container, vol: Vol):
+def measure_fluid(measure_instrum: MeasureHardware, from_container: Container, to_container: Container, vol: Vol):
     """ measures out a fluid into another fluid"""

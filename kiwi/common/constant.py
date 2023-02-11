@@ -6,9 +6,12 @@ class ConstWrapper:
 class SysStatus:
     FAIL = 0
     SUCCESS = 1
-    AVAILABLE = 100
-    RUNNING = 101
-    PENDING = 102
+
+    INIT = 100
+    AVAILABLE = 101
+    RUNNING = 102
+    PENDING = 103
+    DONE = 104
 
 
 class MsgLevel:
@@ -19,3 +22,14 @@ class MsgLevel:
     ERROR = 4
     FATAL = 5
 
+
+class MsgEndpoint:
+    OP = "op"
+    STEP = "step"
+    WATCH = "watch"
+
+
+class EventName:
+    OP_EVENT = "event:op"
+    STEP_EVENT = "event:step"
+    FATAL_ALARM_EVENT = "event:fatal_alarm"
