@@ -9,33 +9,24 @@ class BioType(Enum):
 
 
 class BioObject(metaclass=ABCMeta):
-    def __init__(self, mock=False):
+    """
+    class member end with _um means the function can not be mocked
+    """
+    def __init__(self, mock=False, mock_obj=None):
         self.bio_type = None
         self.id = None
         self.mock = mock
+        self.mock_obj = mock_obj
         self.status = False
 
-    def get_id(self) -> None:
+    def get_id_um(self) -> None:
         return self.id
 
-    def get_bio_type(self) -> BioType:
+    def get_bio_type_um(self) -> BioType:
         return self.bio_type
 
-    def is_mock(self) -> bool:
+    def is_mock_um(self) -> bool:
         return self.mock
 
-    def input(self, in_msg: str, stream=False, connector=None):
-        """
-        receive msg from other object
-        if connector does not exist, just set the msg;
-        or receive from connector until end
-        """
-        pass
-
-    def output(self, stream=False, connector=None) -> str:
-        """
-        send msg to other object
-        if connector does not exist, just return the msg;
-        or send the message through connector
-        """
-        pass
+    def set_mock_um(self, is_mock: bool) -> None:
+        self.mock = is_mock

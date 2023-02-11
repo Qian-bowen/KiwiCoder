@@ -58,30 +58,8 @@ class SysLoader:
                 pass
         self.step_controller.add_step_list(GenericEnv().steps_generic)
 
-    def _build_connectors(self):
-        """build the message system"""
+    def topology_view(self):
         pass
 
     def print_sys_init_log(self):
         self.step_controller.print_step_tree()
-
-
-class Runtime:
-    def __init__(self, sys: SysLoader):
-        self.sys = sys
-
-    def run(self):
-        """event loop, receive msg and send signal"""
-
-    def prepare(self):
-        pass
-
-    def shutdown(self):
-        pass
-
-    def get_status(self):
-        pass
-
-    def _send_signal(self, from_id: int, to_id: int, seq_num: int, msg: str):
-        """signal can only be send to bio object with receive connector"""
-        pass
