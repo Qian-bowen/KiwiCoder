@@ -24,7 +24,7 @@ class BioOp(ABC):
         return self._pack_op_info()
 
     def attach_periphery(self, periphery: Periphery) -> None:
-        self.periphery_dict[periphery.get_id()] = periphery
+        self.periphery_dict[periphery.get_id_um()] = periphery
         return
 
     def run(self) -> SysStatus:
@@ -61,6 +61,11 @@ class MeasureFluid(BioOp):
         for driver in self.drivers:
             driver.shutdown()
         return SysStatus.SUCCESS
+
+
+class Heat(BioOp):
+    def __init__(self, step_name: str, op_index: int):
+        super().__init__(step_name, op_index)
 
 
 class FirstStepOp(BioOp):

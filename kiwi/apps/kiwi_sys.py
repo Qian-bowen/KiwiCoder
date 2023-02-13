@@ -1,8 +1,11 @@
-from .bio_obj import BioObject
+import asyncio
+
+from kiwi.core.bio_obj import BioObject
 from typing import Dict
-from .sched import Scheduler
+from kiwi.core.sched import Scheduler
 from kiwi.common import singleton, ConstWrapper
-from .step import Step, StepController
+from kiwi.core.step import Step, StepController
+from kiwi.endpoint import KiwiServer
 
 
 @singleton
@@ -31,6 +34,7 @@ class SysLoader:
         self.obj_relation = Dict[BioObject, BioObject]
         self.step_scheduler = Scheduler()
         self.step_controller = StepController()
+        self.server = KiwiServer()
 
     def build_sys(self):
         """prepare the system"""
@@ -39,6 +43,9 @@ class SysLoader:
 
     def shutdown_sys(self):
         pass
+
+    def _init_endpoint(self):
+        asyncio.get_event_loop().run_until_complete(self.serve())
 
     def _scan_process(self):
         """scan steps and build process graph"""
