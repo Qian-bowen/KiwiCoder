@@ -1,4 +1,3 @@
-from kiwi.core import GenericEnv
 from kiwi.common import ConstWrapper, ParseParamException
 
 
@@ -68,6 +67,11 @@ class MeasureHardware(Wrapper):
 
 
 class Container(Wrapper):
+    def __init__(self):
+        pass
+
+
+class Fluid(Wrapper):
     def __init__(self):
         pass
 

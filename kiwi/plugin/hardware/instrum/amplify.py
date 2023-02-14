@@ -1,10 +1,8 @@
-from abc import ABC
-
-from kiwi.core import Periphery
+from kiwi.core import InstrumPeriphery
 import copy
 
 
-class Anneal(Periphery):
+class Anneal(InstrumPeriphery):
     def __init__(self, primers, template, limit):
         super().__init__()
         self.primers = primers
