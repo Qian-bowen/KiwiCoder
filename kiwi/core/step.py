@@ -28,11 +28,11 @@ class Step(TreeNode):
     def execute(self) -> None:
         """ execute the step operations, if fail, rollback and retry """
         for op in self.operations:
-            op_status = op.run()
+            op_status = op.all_stage_run()
             if op_status != SysStatus.SUCCESS:
                 rollback_status = op.rollback()
                 if rollback_status == SysStatus.SUCCESS:
-                    re_op_status = op.run()
+                    re_op_status = op.all_stage_run()
                     if re_op_status != SysStatus.SUCCESS:
                         self._fatal_alarm()
                 else:

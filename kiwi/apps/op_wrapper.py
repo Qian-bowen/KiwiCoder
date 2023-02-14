@@ -1,25 +1,25 @@
 from .wrapper import *
 
 
-def attach(attach_spec: str):
-    def __outer_wrapper__(func):
-        def __inner_wrapper__(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return __inner_wrapper__
-
-    return __outer_wrapper__
+def start_protocol(_comment: str):
+    pass
 
 
-def mock():
-    def __outer_wrapper__(func):
-        def __inner_wrapper__(*args, **kwargs):
-            return func(*args, **kwargs)
+def end_protocol():
+    pass
 
-        return __inner_wrapper__
 
-    return __outer_wrapper__
+def comment(_comment: str):
+    pass
 
 
 def measure_fluid(measure_instrum: MeasureHardware, from_container: Container, to_container: Container, vol: Vol):
     """ measures out a fluid into another fluid"""
+
+
+def inoculation():
+    pass
+
+
+def centrifuge_pellet():
+    pass
