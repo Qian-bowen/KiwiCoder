@@ -18,6 +18,10 @@ class Periphery(BioObject):
         pass
 
 
+# ==================================== #
+#        Periphery type                #
+# ==================================== #
+
 class ControlPeriphery(Periphery):
     """ center hardware that controls other periphery, e.g. Raspberry Pi"""
 
@@ -30,6 +34,19 @@ class ControlPeriphery(Periphery):
 
     @abstractmethod
     def shutdown(self):
+        pass
+
+    @abstractmethod
+    def set_signal(self, bio_id: int):
+        """ set signal with default or max value to the port """
+        pass
+
+    @abstractmethod
+    def unset_signal(self, bio_id: int):
+        pass
+
+    @abstractmethod
+    def set_signal_with_value(self, bio_id: int, val: float):
         pass
 
 
@@ -48,9 +65,14 @@ class InstrumPeriphery(Periphery):
         pass
 
 
-class DriverPeriphery(Periphery):
-    def __init__(self, mock=False, mock_obj=None):
+class SignalPeriphery(Periphery):
+    """
+    a periphery is commonly controlled by a attach_to periphery
+    """
+
+    def __init__(self, control_periphery: ControlPeriphery, mock=False, mock_obj=None):
         super().__init__(mock=mock, mock_obj=mock_obj)
+        self.attach_to = control_periphery
 
     @abstractmethod
     def start(self):

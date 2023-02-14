@@ -1,6 +1,5 @@
-import pytest
 from kiwi.apps import KiwiCoder, Step, Vol, Container, measure_fluid, MeasureHardware
-from kiwi.hardware import FlowMeter
+from kiwi.plugin.hardware import FlowMeter
 
 
 def test_app_config():
