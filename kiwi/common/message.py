@@ -10,8 +10,7 @@ class Msg:
         self.destinations = destinations
 
     def _pack(self) -> str:
-        # TODO
-        return self.msg
+        pass
 
     @staticmethod
     def unpack(raw_msg: str):

@@ -15,6 +15,7 @@ def comment(_comment: str):
 
 def measure_fluid(measure_instrum: MeasureHardware, from_container: Container, to_container: Container, vol: Vol):
     """ measures out a fluid into another fluid"""
+    Wrapper(vol=vol, measure_instrum=measure_instrum, drivers=[], wrapper_type=ConstWrapper.OP_MEASURE_FLUID_WRAPPER)
 
 
 def inoculation():

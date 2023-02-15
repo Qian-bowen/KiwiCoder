@@ -34,7 +34,8 @@ class BioOp(ABC):
         self.run_funcs = List[Callable]
 
         bus.add_event(func=self._signal_handler,
-                      event=EventName.OP_SIGNAL_RECEIVE_EVENT.format(self._get_op_identifier()))
+                      event=EventName.OP_SIGNAL_RECEIVE_EVENT
+                      .format(BioOp.get_op_identifier(self.step_name, self.op_index)))
         if auto_level == AutoLevel.FULL:
             self.run_funcs = [self._run]
         elif auto_level == AutoLevel.SEMI:
@@ -51,8 +52,12 @@ class BioOp(ABC):
 
     def all_stage_run(self) -> SysStatus:
         for func in self.run_funcs:
+            BioOp._print_to_screen(msg=UserMsg.OP_STAGE_START_TEMPLATE
+                                   .format(self.step_name, self.op_index, func.__name__), level=MsgLevel.INFO)
             self.running_lock.acquire()
             status = func()
+            BioOp._print_to_screen(msg=UserMsg.OP_STAGE_END_TEMPLATE
+                                   .format(self.step_name, self.op_index, func.__name__), level=MsgLevel.INFO)
         return SysStatus.SUCCESS
 
     @abstractmethod
@@ -64,9 +69,7 @@ class BioOp(ABC):
 
     def _human_run(self) -> SysStatus:
         """ notify human to operate """
-        bus.emit(EventName.SCREEN_PRINT_EVENT,
-                 Msg(msg=UserMsg.OP_OPERATE_HUMAN, source=MsgEndpoint.OP, destinations=[MsgEndpoint.USER_TERMINAL],
-                     code=SysStatus.AVAILABLE, level=MsgLevel.IMPORTANT))
+        BioOp._print_to_screen(msg=UserMsg.OP_OPERATE_HUMAN, level=MsgLevel.IMPORTANT)
         return SysStatus.SUCCESS
 
     def _signal_handler(self, signal: SysSignal) -> None:
@@ -78,16 +81,18 @@ class BioOp(ABC):
     def _pack_op_info(self) -> str:
         pass
 
-    def _fatal_alarm(self) -> None:
-        raw = str(self)
-        msg = Msg(msg=raw, source=MsgEndpoint.OP, destinations=[MsgEndpoint.WATCH], level=MsgLevel.FATAL)
-        bus.emit(event=EventName.FATAL_ALARM_EVENT, msg=msg)
+    @staticmethod
+    def _print_to_screen(msg: str, level: MsgLevel):
+        bus.emit(EventName.SCREEN_PRINT_EVENT,
+                 Msg(msg=msg, source=MsgEndpoint.OP, destinations=[MsgEndpoint.USER_TERMINAL],
+                     code=SysStatus.AVAILABLE, level=level))
 
-    def _get_op_identifier(self) -> str:
-        return self.step_name + " " + str(self.op_index)
+    @staticmethod
+    def get_op_identifier(step_name: str, op_index: int) -> str:
+        return step_name + " " + str(op_index)
 
 
-class MeasureFluid(BioOp):
+class MeasureFluidOp(BioOp):
     def __init__(self, step_name: str, op_index: int, vol: Volume, measure_instrum: MeasureInstrumPeriphery,
                  drivers: List[Periphery]):
         super().__init__(step_name, op_index)

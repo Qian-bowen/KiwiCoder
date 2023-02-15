@@ -1,4 +1,5 @@
 from kiwi.common import ConstWrapper, ParseParamException
+from kiwi.core import GenericEnv
 
 
 class Wrapper:
