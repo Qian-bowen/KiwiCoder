@@ -9,8 +9,12 @@ bus = EventBus()
 
 class Strategy:
     @staticmethod
-    def next_object_random(schedule_list: List[Step]) -> Step:
+    def next_object_random(schedule_list: []) -> Step:
         return schedule_list[random.randint(0, len(schedule_list) - 1)]
+
+    @staticmethod
+    def next_first(schedule_list: []) -> Step:
+        return schedule_list[0]
 
 
 class StepController:
@@ -34,12 +38,13 @@ class StepController:
         self.schedule_mode = schedule_mode
 
     def next_step(self):
-        schedule_list = List[Step]
+        schedule_list = []
         if self.schedule_mode == ScheduleMode.SEQ:
             schedule_list = self.step_tree.preorder(exclude_done=True)
+            print("len:{}".format(len(schedule_list)))
         if len(schedule_list) == 0:
             return None
-        return Strategy.next_object_random(schedule_list)
+        return Strategy.next_first(schedule_list)
 
     def print_step_tree(self):
         print("\n===================step tree===================")

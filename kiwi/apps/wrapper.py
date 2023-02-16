@@ -52,31 +52,31 @@ class Step(Wrapper):
         return sn, wt, cp
 
 
-class Hardware(Wrapper):
-    def __init__(self, comment: str, plugin=None):
-        super().__init__()
-
-
-class ControlHardware(Wrapper):
-    def __init__(self, comment: str, plugin=None):
-        super().__init__()
-
-
-class MeasureHardware(Wrapper):
-    def __init__(self, comment: str, plugin=None):
-        super().__init__()
+# class ControlPeriphery(Wrapper):
+#     def __init__(self, comment: str, plugin=None):
+#         super().__init__(wrapper_type=ConstWrapper.PERIPHERY_CONTROL_WRAPPER)
+#
+#
+# class InstrumPeriphery(Wrapper):
+#     def __init__(self, comment: str, plugin=None):
+#         super().__init__(wrapper_type=ConstWrapper.PERIPHERY_INSTRUM_WRAPPER)
+#
+#
+# class SignalPeriphery(Wrapper):
+#     def __init__(self, comment: str, plugin=None):
+#         super().__init__(wrapper_type=ConstWrapper.PERIPHERY_SIGNAL_WRAPPER)
 
 
 class Container(Wrapper):
     def __init__(self):
-        pass
+        super().__init__(wrapper_type=ConstWrapper.ENTITY_CONTAINER_WRAPPER)
 
 
 class Fluid(Wrapper):
     def __init__(self):
-        pass
+        super().__init__(wrapper_type=ConstWrapper.ENTITY_FLUID_WRAPPER)
 
 
-class Vol(Wrapper):
-    def __init__(self):
-        pass
+# class Vol(Wrapper):
+#     def __init__(self):
+#         super().__init__(wrapper_type=ConstWrapper.QUANTITY_VOL_WRAPPER)

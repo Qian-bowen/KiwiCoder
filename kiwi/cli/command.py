@@ -69,8 +69,8 @@ class Output:
     def __init__(self, buffer_size: int):
         self.out_buffer = Queue(buffer_size)
         self.can_print = True
+        bus.add_event(func=self.print_screen, event=EventName.SCREEN_PRINT_EVENT)
 
-    @bus.on(event=EventName.SCREEN_PRINT_EVENT)
     def print_screen(self, msg: Msg):
         raw_str = Output._msg_out_string(msg)
         if self.can_print:

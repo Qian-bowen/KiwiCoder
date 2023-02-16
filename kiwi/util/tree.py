@@ -54,7 +54,10 @@ class TreeAryN:
         def dfs(node: TreeNode):
             if node is None:
                 return
-            if not exclude_done or node.done():
+            if exclude_done:
+                if not node.done():
+                    res_seq.append(node)
+            else:
                 res_seq.append(node)
             for child in node.children:
                 dfs(child)

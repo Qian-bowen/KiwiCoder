@@ -20,7 +20,7 @@ class Step(TreeNode):
         self.step_num = step_num
         self.wait_list = wait_list
         self.children_parallel_list = children_parallel_list
-        self.operations = List[BioOp]
+        self.operations = []
         self.status = SysStatus.INIT
 
     def done(self) -> bool:
@@ -31,6 +31,7 @@ class Step(TreeNode):
 
     def execute(self) -> None:
         """ execute the step operations, if fail, rollback and retry """
+        all_status = SysStatus.INIT
         for op in self.operations:
             op_status = op.all_stage_run()
             if op_status != SysStatus.SUCCESS:
@@ -41,6 +42,9 @@ class Step(TreeNode):
                         self._fatal_alarm()
                 else:
                     self._fatal_alarm()
+        all_status = SysStatus.DONE
+        self.status = SysStatus.DONE
+        return all_status
 
     def rollback(self) -> SysStatus:
         pass

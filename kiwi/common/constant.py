@@ -6,10 +6,24 @@ class ConstWrapper:
     OP_MEASURE_FLUID_WRAPPER = 11
 
     ENTITY_WRAPPER = 1000
+    ENTITY_CONTAINER_WRAPPER = 1001
+    ENTITY_FLUID_WRAPPER = 1002
+
+    QUANTITY_WRAPPER = 1800
+    QUANTITY_VOL_WRAPPER = 1801
+
+    PERIPHERY_WRAPPER = 2000
+    PERIPHERY_CONTROL_WRAPPER = 2001
+    PERIPHERY_INSTRUM_WRAPPER = 2002
+    PERIPHERY_SIGNAL_WRAPPER = 2003
 
     @staticmethod
-    def is_op_wrapper(wrapper_type: int):
+    def is_op_wrapper(wrapper_type: int) -> bool:
         return ConstWrapper.OP_WRAPPER <= wrapper_type < ConstWrapper.ENTITY_WRAPPER
+
+    @staticmethod
+    def is_quantity_wrapper(wrapper_type: int) -> bool:
+        return ConstWrapper.QUANTITY_WRAPPER <= wrapper_type < ConstWrapper.PERIPHERY_WRAPPER
 
 
 class SysStatus:

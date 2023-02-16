@@ -1,12 +1,12 @@
 import asyncio
 
 from kiwi.core.bio_obj import BioObject
-from typing import Dict
+from typing import Dict, List
 from kiwi.core.sched import StepController
-from kiwi.common import singleton, ConstWrapper
+from kiwi.common import singleton, ConstWrapper, SysStatus
 from kiwi.core.step import Step
 from kiwi.core.bio_op import MeasureFluidOp
-from typing import List
+from threading import Thread
 
 
 @singleton
@@ -15,7 +15,7 @@ class GenericEnv:
 
     def __init__(self):
         self.wrappers = []
-        self.steps_generic = List[Step]
+        self.steps_generic = []
 
     def append_wrapper(self, wrapper, *args, **kwargs):
         self.wrappers.append(wrapper)
@@ -53,11 +53,20 @@ class KiwiSys:
         self._scan_env()
 
     def run_task_callback(self):
+        task_thread = Thread(target=self._thread_run_task)
+        task_thread.start()
+        # task_thread.join()
+
+    def _thread_run_task(self):
         while True:
             next_step = self.step_controller.next_step()
             if next_step is None:
                 break
-            next_step.execute()
+            print(next_step.step_num)
+            status = next_step.execute()
+            print("status:{}".format(status))
+            if status != SysStatus.DONE:
+                break
 
     def _init_endpoint(self):
         asyncio.get_event_loop().run_until_complete(self.serve())
@@ -79,6 +88,7 @@ class KiwiSys:
             if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
                 pass
         self.step_controller.add_step_list(GenericEnv().steps_generic)
+        self.step_controller.print_step_tree()
 
     def topology_view(self):
         pass
