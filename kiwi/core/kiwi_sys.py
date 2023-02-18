@@ -7,6 +7,7 @@ from kiwi.common import singleton, ConstWrapper, SysStatus
 from kiwi.core.step import Step
 from kiwi.core.bio_op import MeasureFluidOp
 from threading import Thread
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 
 
 @singleton
@@ -36,10 +37,11 @@ class GenericEnv:
 
 @singleton
 class KiwiSys:
-    def __init__(self):
+    def __init__(self, thread_pool_size: int):
         self.obj_map = Dict[int, BioObject]
         self.obj_relation = Dict[BioObject, BioObject]
         self.step_controller = StepController()
+        self.thread_pool = ThreadPoolExecutor(max_workers=thread_pool_size)
         # self.server = KiwiServer()
 
     def build_sys(self):
@@ -59,14 +61,15 @@ class KiwiSys:
 
     def _thread_run_task(self):
         while True:
-            next_step = self.step_controller.next_step()
-            if next_step is None:
+            next_steps = self.step_controller.next_steps()
+            if next_steps is None or len(next_steps) == 0:
                 break
-            print(next_step.step_num)
-            status = next_step.execute()
-            print("status:{}".format(status))
-            if status != SysStatus.DONE:
-                break
+            print(next_steps)
+            all_step_task = [self.thread_pool.submit(next_step.execute) for next_step in next_steps]
+            wait(all_step_task, return_when=ALL_COMPLETED)
+            for step_task in all_step_task:
+                status = step_task.result()
+                print("status:{}".format(status))
 
     def _init_endpoint(self):
         asyncio.get_event_loop().run_until_complete(self.serve())
@@ -89,6 +92,7 @@ class KiwiSys:
                 pass
         self.step_controller.add_step_list(GenericEnv().steps_generic)
         self.step_controller.print_step_tree()
+        self.step_controller.add_step_list_to_graph(GenericEnv().steps_generic)
 
     def topology_view(self):
         pass

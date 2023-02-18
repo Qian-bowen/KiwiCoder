@@ -6,7 +6,7 @@ from kiwi.core.kiwi_sys import GenericEnv, KiwiSys
 class KiwiCoder:
     def __init__(self):
         self.environment = GenericEnv()
-        self.kiwi_sys = KiwiSys()
+        self.kiwi_sys = KiwiSys(thread_pool_size=10)
         self.cmd = Cmd(self.kiwi_sys)
 
     def __del__(self):

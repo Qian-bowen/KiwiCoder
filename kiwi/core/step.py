@@ -1,7 +1,6 @@
 from kiwi.util import TreeNode, EventBus
 from kiwi.common import EventName, SysStatus, Msg, MsgEndpoint, MsgLevel
-from typing import List
-from .bio_op import BioOp
+from typing import Optional
 
 bus = EventBus()
 
@@ -64,6 +63,23 @@ class Step(TreeNode):
         for i in range(0, len(seq_nums_list) - 1):
             parent_key += seq_nums_list[i] + "."
         return parent_key[:-1]
+
+    @staticmethod
+    def brother_step(step_num: str, younger_one: bool) -> Optional[str]:
+        seq_nums_list = step_num.split('.')
+        if len(seq_nums_list) == 1 and seq_nums_list[0] == "0":
+            return None
+        last_num = seq_nums_list[len(seq_nums_list) - 1]
+        if younger_one and last_num == "1":
+            return None
+        if younger_one:
+            brother_last = str(int(last_num) - 1)
+        else:
+            brother_last = str(int(last_num) + 1)
+        brother_key = ""
+        for i in range(0, len(seq_nums_list) - 1):
+            brother_key += seq_nums_list[i] + "."
+        return brother_key + brother_last
 
     def _fatal_alarm(self) -> None:
         raw = str(self)

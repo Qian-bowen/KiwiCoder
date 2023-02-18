@@ -72,6 +72,7 @@ class BioOp(ABC):
         BioOp._print_to_screen(msg=UserMsg.OP_OPERATE_HUMAN, level=MsgLevel.IMPORTANT)
         self.status = SysStatus.PENDING
         while self.status == SysStatus.PENDING:
+            ''' sleep to yield cpu to cmd thread '''
             sleep(0.1)
         return SysStatus.SUCCESS
 

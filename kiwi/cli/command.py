@@ -6,6 +6,7 @@ from kiwi.core.bio_op import BioOp
 from termcolor import colored
 from colorama import init
 import datetime
+import keyboard
 
 bus = EventBus()
 
@@ -45,7 +46,8 @@ class Cmd:
                 do_cmd = cmd_segments[6]
                 sig = Cmd._cmd_param_to_signal(do_cmd)
                 bus.emit(event=EventName.OP_SIGNAL_RECEIVE_EVENT
-                         .format(BioOp.get_op_identifier(step_name=step_name, op_index=int(operation_index))), signal=sig)
+                         .format(BioOp.get_op_identifier(step_name=step_name, op_index=int(operation_index))),
+                         signal=sig)
 
     @staticmethod
     def _cmd_param_to_signal(param: str) -> SysSignal:
