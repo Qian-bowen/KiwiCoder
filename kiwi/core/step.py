@@ -1,7 +1,6 @@
-from kiwi.util import TreeNode, TreeAryN, EventBus
-from kiwi.common import sort_default, EventName, SysStatus, Msg, MsgEndpoint, MsgLevel
-from typing import List
-from .bio_op import BioOp
+from kiwi.util import TreeNode, EventBus
+from kiwi.common import EventName, SysStatus, Msg, MsgEndpoint, MsgLevel
+from typing import Optional
 
 bus = EventBus()
 
@@ -20,13 +19,18 @@ class Step(TreeNode):
         self.step_num = step_num
         self.wait_list = wait_list
         self.children_parallel_list = children_parallel_list
-        self.operations = List[BioOp]
+        self.operations = []
+        self.status = SysStatus.INIT
+
+    def done(self) -> bool:
+        return self.status == SysStatus.DONE
 
     def append_operation(self, operation) -> None:
         self.operations.append(operation)
 
     def execute(self) -> None:
         """ execute the step operations, if fail, rollback and retry """
+        all_status = SysStatus.INIT
         for op in self.operations:
             op_status = op.all_stage_run()
             if op_status != SysStatus.SUCCESS:
@@ -37,6 +41,9 @@ class Step(TreeNode):
                         self._fatal_alarm()
                 else:
                     self._fatal_alarm()
+        all_status = SysStatus.DONE
+        self.status = SysStatus.DONE
+        return all_status
 
     def rollback(self) -> SysStatus:
         pass
@@ -57,37 +64,24 @@ class Step(TreeNode):
             parent_key += seq_nums_list[i] + "."
         return parent_key[:-1]
 
+    @staticmethod
+    def brother_step(step_num: str, younger_one: bool) -> Optional[str]:
+        seq_nums_list = step_num.split('.')
+        if len(seq_nums_list) == 1 and seq_nums_list[0] == "0":
+            return None
+        last_num = seq_nums_list[len(seq_nums_list) - 1]
+        if younger_one and last_num == "1":
+            return None
+        if younger_one:
+            brother_last = str(int(last_num) - 1)
+        else:
+            brother_last = str(int(last_num) + 1)
+        brother_key = ""
+        for i in range(0, len(seq_nums_list) - 1):
+            brother_key += seq_nums_list[i] + "."
+        return brother_key + brother_last
+
     def _fatal_alarm(self) -> None:
         raw = str(self)
         msg = Msg(msg=raw, source=MsgEndpoint.STEP, destinations=[MsgEndpoint.WATCH], level=MsgLevel.FATAL)
         bus.emit(event=EventName.FATAL_ALARM_EVENT, msg=msg)
-
-
-class StepController:
-    def __init__(self):
-        self.step_tree = TreeAryN(sort_func=sort_default)
-        self.step_graph = None
-        root_step = Step(step_num="0", wait_list=[], children_parallel_list=[])
-        self.step_tree.add_node(root_step)
-
-    def add_step(self, step: Step):
-        parent_step_key = Step.parent_step(step.step_num)
-        self.step_tree.add_node(step, parent_step_key)
-
-    def add_step_list(self, steps: List[Step]):
-        for step in steps:
-            parent_step_key = Step.parent_step(step.step_num)
-            self.step_tree.add_node(step, parent_step_key)
-
-    def _build_step_graph(self) -> None:
-        if self.step_graph is not None:
-            return
-
-    def print_step_tree(self):
-        print("\n===================step tree===================")
-        print(self.step_tree)
-        print("=================step tree end=================\n")
-
-    @bus.on(event=EventName.STEP_EVENT)
-    def _listen_step(self, step_name: str, step_status: SysStatus):
-        pass

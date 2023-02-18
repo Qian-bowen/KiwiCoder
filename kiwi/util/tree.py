@@ -1,8 +1,9 @@
 from kiwi.common.exception import NodeNotFoundException
 from typing import List
+from abc import ABCMeta, abstractmethod
 
 
-class TreeNode(object):
+class TreeNode(metaclass=ABCMeta):
     def __init__(self, key, children=None):
         if children is None:
             children = []
@@ -14,6 +15,10 @@ class TreeNode(object):
 
     def __lt__(self, other):
         return self.key < other.key
+
+    @abstractmethod
+    def done(self) -> bool:
+        pass
 
 
 class TreeAryN:
@@ -43,13 +48,17 @@ class TreeAryN:
                 self.sort_func(parent_node.children)
         self.size += 1
 
-    def preorder(self) -> List[TreeNode]:
+    def preorder(self, exclude_done=False) -> List[TreeNode]:
         res_seq = []
 
         def dfs(node: TreeNode):
             if node is None:
                 return
-            res_seq.append(node)
+            if exclude_done:
+                if not node.done():
+                    res_seq.append(node)
+            else:
+                res_seq.append(node)
             for child in node.children:
                 dfs(child)
 
