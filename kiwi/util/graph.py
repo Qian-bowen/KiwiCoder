@@ -21,6 +21,16 @@ class DAG:
                 if v == target_node:
                     self.graph[u].remove(v)
 
+    def delete_node_by_key(self, target_node_key) -> None:
+        target_node = self.key2node[target_node_key]
+        if target_node in self.graph:
+            raise KeyError('node %s already exist' % target_node)
+        self.graph.pop(target_node)
+        for u in self.graph:
+            for v in self.graph[u]:
+                if v == target_node:
+                    self.graph[u].remove(v)
+
     def add_edge(self, from_node, to_node) -> None:
         self.graph[from_node].add(to_node)
 
@@ -60,7 +70,19 @@ class DAG:
         return list(self.graph[node])
 
     def available_nodes(self) -> []:
-        pass
+        nodes = []
+        in_degree = {}
+        for u in self.graph:
+            in_degree[u] = 0
+        for u in self.graph:
+            if u.done():
+                continue
+            for v in self.graph[u]:
+                in_degree[v] += 1
+        for u in self.graph:
+            if not u.done() and in_degree[u] == 0:
+                nodes.append(u)
+        return nodes
 
     def topological_sort(self):
         in_degree = {}

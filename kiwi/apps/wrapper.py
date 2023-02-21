@@ -41,10 +41,10 @@ class Step(Wrapper):
             if param_list[i][0:3] == "sn:":
                 sn = param_list[i][3:]
             elif param_list[i][0:3] == "wt:":
-                wt_raw = param_list[i][3:-1]
+                wt_raw = param_list[i][4:-1]
                 wt = wt_raw.split(',')
             elif param_list[i][0:3] == "cp:":
-                cp_raw = param_list[i][3:-1]
+                cp_raw = param_list[i][4:-1]
                 cp = cp_raw.split(',')
             else:
                 raise ParseParamException('param is wrong')

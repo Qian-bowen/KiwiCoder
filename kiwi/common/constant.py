@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class ConstWrapper:
     BASE_WRAPPER = 0
     STEP_WRAPPER = 1
@@ -26,7 +29,7 @@ class ConstWrapper:
         return ConstWrapper.QUANTITY_WRAPPER <= wrapper_type < ConstWrapper.PERIPHERY_WRAPPER
 
 
-class SysStatus:
+class SysStatus(Enum):
     FAIL = 0
     SUCCESS = 1
 
@@ -37,7 +40,7 @@ class SysStatus:
     DONE = 104
 
 
-class MsgLevel:
+class MsgLevel(Enum):
     GOSSIP = 0
     INFO = 1
     IMPORTANT = 2
@@ -68,6 +71,7 @@ class MsgEndpoint:
     STEP = "step"
     WATCH = "watch"
     USER_TERMINAL = "user_terminal"
+    SYS = "sys"
 
 
 class EventName:
@@ -92,15 +96,17 @@ class SysSignal:
     CONTINUE = 4
 
 
-class ScheduleMode:
+class ScheduleMode(Enum):
     SEQ = 0
     GRAPH = 1
 
 
 class UserMsg:
-    OP_OPERATE_HUMAN = "This operation requires human. Send 'Continue' signal when finish."
+    OP_OPERATE_HUMAN_TEMPLATE = "This operation(step:{} op:{}) requires human. Send 'Continue' signal when finish."
     OP_STAGE_START_TEMPLATE = "Step:{} Operation:{} Stage:{} begin."
     OP_STAGE_END_TEMPLATE = "Step:{} Operation:{} Stage:{} finish."
+    STEP_START_TEMPLATE = "Step:{} begin."
+    STEP_END_TEMPLATE = "Step:{} finish."
 
 
 class Config:

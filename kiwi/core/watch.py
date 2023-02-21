@@ -1,2 +1,3 @@
-class Watcher
+class Watcher:
+    pass
 
