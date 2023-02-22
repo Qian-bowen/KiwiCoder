@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 
-class ConstWrapper:
+class ConstWrapper(IntEnum):
     BASE_WRAPPER = 0
     STEP_WRAPPER = 1
 
@@ -16,20 +16,42 @@ class ConstWrapper:
     QUANTITY_VOL_WRAPPER = 1801
 
     PERIPHERY_WRAPPER = 2000
-    PERIPHERY_CONTROL_WRAPPER = 2001
-    PERIPHERY_INSTRUM_WRAPPER = 2002
-    PERIPHERY_SIGNAL_WRAPPER = 2003
+    PERIPHERY_CONTROL_WRAPPER = 2500
+    PERIPHERY_INSTRUM_WRAPPER = 3000
+    PERIPHERY_SIGNAL_WRAPPER = 3500
+
+    PERIPHERY_INSTRUM_FLOW_METER_WRAPPER = 3001
+
+    LIMIT = 10000
 
     @staticmethod
     def is_op_wrapper(wrapper_type: int) -> bool:
-        return ConstWrapper.OP_WRAPPER <= wrapper_type < ConstWrapper.ENTITY_WRAPPER
+        return ConstWrapper.OP_WRAPPER.value <= wrapper_type < ConstWrapper.ENTITY_WRAPPER.value
 
     @staticmethod
     def is_quantity_wrapper(wrapper_type: int) -> bool:
-        return ConstWrapper.QUANTITY_WRAPPER <= wrapper_type < ConstWrapper.PERIPHERY_WRAPPER
+        return ConstWrapper.QUANTITY_WRAPPER.value <= wrapper_type < ConstWrapper.PERIPHERY_WRAPPER.value
+
+    @staticmethod
+    def is_periphery_wrapper(wrapper_type: int) -> bool:
+        return ConstWrapper.PERIPHERY_WRAPPER.value <= wrapper_type < ConstWrapper.LIMIT.value
+
+    @staticmethod
+    def get_class_name(wrapper_type: int) -> str:
+        enum_type = ConstWrapper(wrapper_type)
+        enum_name = enum_type.name
+        raw_name_list = enum_name.split('_')
+        core_name = []
+        final_name = ""
+        if ConstWrapper.is_periphery_wrapper(wrapper_type):
+            core_name = raw_name_list[2:-1]
+        for name in core_name:
+            lower_str = name.title()
+            final_name += lower_str
+        return final_name
 
 
-class SysStatus(Enum):
+class SysStatus(IntEnum):
     FAIL = 0
     SUCCESS = 1
 
@@ -40,7 +62,7 @@ class SysStatus(Enum):
     DONE = 104
 
 
-class MsgLevel(Enum):
+class MsgLevel(IntEnum):
     GOSSIP = 0
     INFO = 1
     IMPORTANT = 2
@@ -96,7 +118,7 @@ class SysSignal:
     CONTINUE = 4
 
 
-class ScheduleMode(Enum):
+class ScheduleMode(IntEnum):
     SEQ = 0
     GRAPH = 1
 

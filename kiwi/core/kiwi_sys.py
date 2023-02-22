@@ -3,7 +3,7 @@ import asyncio
 from kiwi.core.bio_obj import BioObject
 from typing import Dict, List, Any, Callable
 from kiwi.core.sched import StepController
-from kiwi.common import singleton, ConstWrapper, ScheduleMode
+from kiwi.common import singleton, ConstWrapper, ScheduleMode, ModuleNotFoundException, ClassNotFoundException
 from kiwi.core.step import Step
 from kiwi.core.bio_op import MeasureFluidOp
 from threading import Thread
@@ -17,6 +17,7 @@ class GenericEnv:
     def __init__(self):
         self.wrappers = []
         self.steps_generic = []
+        self.periphery_generic = []
 
     def reset(self):
         self.__init__()
@@ -36,6 +37,11 @@ class GenericEnv:
                 op = MeasureFluidOp(step_name=current_step.step_num, op_index=len(current_step.operations), *args,
                                     **kwargs)
             current_step.append_operation(op)
+        elif ConstWrapper.is_periphery_wrapper(wrapper.get_wrapper_type()):
+            ''' load target class dynamically '''
+            target_class_template = import_plugin_class(wrapper.package_name(), wrapper.class_name())
+            target_class = target_class_template(*args, **kwargs)
+            self.periphery_generic.append(target_class)
 
 
 @singleton
@@ -48,7 +54,7 @@ class KiwiSys:
         self.sys_var_map = Dict[str, Callable]
 
     def build_sys(self):
-        """prepare the system"""
+        """ prepare the system """
         self._init_sys_var_map()
 
     def shutdown_sys(self):
@@ -62,14 +68,14 @@ class KiwiSys:
         task_thread.start()
 
     def set_sys_variable(self, var_name: str, var_value) -> str:
-        self.sys_var_map[var_name+"_setter"](var_value)
-        val = self.sys_var_map[var_name+"_getter"]()
+        self.sys_var_map[var_name + "_setter"](var_value)
+        val = self.sys_var_map[var_name + "_getter"]()
         if hasattr(val, 'name'):
             val = val.name
         return str(val)
 
     def get_sys_variable(self, var_name: str) -> str:
-        val = self.sys_var_map[var_name+"_getter"]()
+        val = self.sys_var_map[var_name + "_getter"]()
         if hasattr(val, 'name'):
             val = val.name
         return str(val)
@@ -90,7 +96,9 @@ class KiwiSys:
 
     def _init_sys_var_map(self):
         def schedule_mode_getter(): return self.step_controller.schedule_mode
+
         def schedule_mode_setter(val): self.step_controller.schedule_mode = val
+
         self.sys_var_map = {
             "schedule_mode_getter": schedule_mode_getter,
             "schedule_mode_setter": schedule_mode_setter
@@ -122,3 +130,16 @@ class KiwiSys:
 
     def print_sys_init_log(self):
         self.step_controller.print_step_tree()
+
+
+def import_plugin_class(module_name, class_name):
+    """ dynamic load class from module """
+    try:
+        module = __import__(module_name, fromlist=[class_name])
+    except ImportError:
+        raise ModuleNotFoundException(module_name)
+    try:
+        target_class = getattr(module, class_name)
+    except AttributeError:
+        raise ClassNotFoundException(class_name)
+    return target_class

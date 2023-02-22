@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from kiwi.common import ConstWrapper, ParseParamException
 from kiwi.core import GenericEnv
 
@@ -52,19 +54,62 @@ class Step(Wrapper):
         return sn, wt, cp
 
 
-# class ControlPeriphery(Wrapper):
-#     def __init__(self, comment: str, plugin=None):
-#         super().__init__(wrapper_type=ConstWrapper.PERIPHERY_CONTROL_WRAPPER)
-#
-#
-# class InstrumPeriphery(Wrapper):
-#     def __init__(self, comment: str, plugin=None):
-#         super().__init__(wrapper_type=ConstWrapper.PERIPHERY_INSTRUM_WRAPPER)
-#
-#
-# class SignalPeriphery(Wrapper):
-#     def __init__(self, comment: str, plugin=None):
-#         super().__init__(wrapper_type=ConstWrapper.PERIPHERY_SIGNAL_WRAPPER)
+class Periphery(Wrapper):
+    def __init__(self, wrapper_type, company=None, product_number=None, comment=None):
+        """
+        Periphery Wrapper can run only when company & pn are specified
+        Args:
+            comment: just notes
+            company: which company produce the product
+            product_number: the product number unique in a company
+        """
+        self.company = company
+        self.pn = product_number
+        self.comment = comment
+        super().__init__(wrapper_type=wrapper_type)
+
+    @abstractmethod
+    def package_name(self) -> str:
+        pass
+
+    def class_name(self) -> str:
+        comm_name = ConstWrapper.get_class_name(self.wrapper_type)
+        return comm_name + self.company + self.pn
+
+
+class ControlPeriphery(Periphery):
+    def __init__(self, wrapper_type=ConstWrapper.PERIPHERY_CONTROL_WRAPPER, company="", product_number="",
+                 comment=None):
+        super().__init__(company=company, product_number=product_number, comment=comment, wrapper_type=wrapper_type)
+
+    def package_name(self) -> str:
+        return "kiwi.plugin.hardware.control"
+
+
+class InstrumPeriphery(Periphery):
+    def __init__(self, wrapper_type=ConstWrapper.PERIPHERY_INSTRUM_WRAPPER, company="", product_number="",
+                 comment=None):
+        super().__init__(company=company, product_number=product_number, comment=comment, wrapper_type=wrapper_type)
+
+    def package_name(self) -> str:
+        return "kiwi.plugin.hardware.instrum"
+
+
+class SignalPeriphery(Periphery):
+    def __init__(self, wrapper_type=ConstWrapper.PERIPHERY_SIGNAL_WRAPPER, company="", product_number="", comment=None):
+        super().__init__(company=company, product_number=product_number, comment=comment, wrapper_type=wrapper_type)
+
+    def package_name(self) -> str:
+        return "kiwi.plugin.hardware.signal"
+
+
+class FlowMeter(InstrumPeriphery):
+    def __init__(self, company="", product_number="", comment=None):
+        super().__init__(company=company, product_number=product_number,
+                         comment=comment, wrapper_type=ConstWrapper.PERIPHERY_INSTRUM_FLOW_METER_WRAPPER)
+
+    def package_name(self) -> str:
+        return super().package_name()
 
 
 class Container(Wrapper):
@@ -75,7 +120,6 @@ class Container(Wrapper):
 class Fluid(Wrapper):
     def __init__(self):
         super().__init__(wrapper_type=ConstWrapper.ENTITY_FLUID_WRAPPER)
-
 
 # class Vol(Wrapper):
 #     def __init__(self):

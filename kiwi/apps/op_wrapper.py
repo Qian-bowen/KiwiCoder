@@ -15,7 +15,7 @@ def comment(_comment: str):
     pass
 
 
-def measure_fluid(measure_instrum: InstrumPeriphery, from_container: Container, to_container: Container, vol: Volume, auto_level=AutoLevel.FULL):
+def measure_fluid(from_container: Container, to_container: Container, vol: Volume, auto_level=AutoLevel.FULL):
     """ measures out a fluid into another fluid """
     Wrapper(vol=vol, measure_instrum=measure_instrum, drivers=[], auto_level=auto_level, wrapper_type=ConstWrapper.OP_MEASURE_FLUID_WRAPPER)
 
