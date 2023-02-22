@@ -1,13 +1,18 @@
 import asyncio
+import inspect
+import sys
 
 from kiwi.core.bio_obj import BioObject
-from typing import Dict, List, Any, Callable
+from typing import Dict, Callable
 from kiwi.core.sched import StepController
-from kiwi.common import singleton, ConstWrapper, ScheduleMode, ModuleNotFoundException, ClassNotFoundException
-from kiwi.core.step import Step
-from kiwi.core.bio_op import MeasureFluidOp
+from kiwi.common import singleton, ConstWrapper, ScheduleMode, ModuleNotFoundException, ClassNotFoundException, Config, \
+    SysStatus, MsgLevel, MsgEndpoint, EventName, Msg, UserMsg
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
+
+from kiwi.util import EventBus
+
+bus = EventBus()
 
 
 @singleton
@@ -18,28 +23,39 @@ class GenericEnv:
         self.wrappers = []
         self.steps_generic = []
         self.periphery_generic = []
+        self.overload_core_obj = set()
 
     def reset(self):
         self.__init__()
 
+    def add_overload_obj(self, overload_name: str) -> None:
+        self.overload_core_obj.add(overload_name)
+
     def append_wrapper(self, wrapper, *args, **kwargs):
         self.wrappers.append(wrapper)
-        self._wrapper2core(*args, **kwargs, wrapper=wrapper)
+
+    def build_wrapper(self):
+        for wrapper in self.wrappers:
+            self._wrapper2core(*wrapper.args, **wrapper.kwargs, wrapper=wrapper)
 
     def _wrapper2core(self, wrapper, *args, **kwargs):
+        """ try to find user defined op class dynamically, or use the default one """
+        if wrapper.class_name() in self.overload_core_obj:
+            target_class_template = import_plugin_class(Config.USER_DEFINED_PACKAGE, wrapper.class_name())
+        else:
+            target_class_template = import_plugin_class(wrapper.package_name(), wrapper.class_name())
+        ''' convert wrapper to core object '''
         if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
-            step = Step(*args, **kwargs)
+            step = target_class_template(*args, **kwargs)
             self.steps_generic.append(step)
         elif ConstWrapper.is_op_wrapper(wrapper.get_wrapper_type()):
             op = None
             current_step = self.steps_generic[len(self.steps_generic) - 1]
             if wrapper.get_wrapper_type() == ConstWrapper.OP_MEASURE_FLUID_WRAPPER:
-                op = MeasureFluidOp(step_name=current_step.step_num, op_index=len(current_step.operations), *args,
-                                    **kwargs)
+                op = target_class_template(step_name=current_step.step_num, op_index=len(current_step.operations),
+                                           *args, **kwargs)
             current_step.append_operation(op)
         elif ConstWrapper.is_periphery_wrapper(wrapper.get_wrapper_type()):
-            ''' load target class dynamically '''
-            target_class_template = import_plugin_class(wrapper.package_name(), wrapper.class_name())
             target_class = target_class_template(*args, **kwargs)
             self.periphery_generic.append(target_class)
 
@@ -61,6 +77,9 @@ class KiwiSys:
         pass
 
     def task_scanner(self):
+        self._load_module()
+        self._scan_user_defined_package()
+        GenericEnv().build_wrapper()
         self._scan_env()
 
     def run_task(self):
@@ -108,9 +127,21 @@ class KiwiSys:
         """scan steps and build process graph"""
         pass
 
-    def _scan_periphery(self):
-        """connect all periphery"""
-        pass
+    def _load_module(self):
+        """ load basic modules """
+        try:
+            __import__(Config.USER_DEFINED_PACKAGE)
+        except ImportError:
+            raise ModuleNotFoundException(Config.USER_DEFINED_PACKAGE)
+
+    def _scan_user_defined_package(self):
+        """ all user defined function or class name into system """
+        overload_msg = ""
+        for name, obj in inspect.getmembers(sys.modules[Config.USER_DEFINED_PACKAGE]):
+            if inspect.isclass(obj) or inspect.isfunction(obj):
+                GenericEnv().add_overload_obj(name)
+                overload_msg += name
+        self._print_to_screen(UserMsg.SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE.format(overload_msg))
 
     def _scan_entity(self):
         """check reagents"""
@@ -130,6 +161,11 @@ class KiwiSys:
 
     def print_sys_init_log(self):
         self.step_controller.print_step_tree()
+
+    def _print_to_screen(self, msg: str, code=SysStatus.SUCCESS, level=MsgLevel.INFO):
+        bus.emit(event=EventName.SCREEN_PRINT_EVENT,
+                 msg=Msg(msg=msg, source=MsgEndpoint.SYS, destinations=[MsgEndpoint.USER_TERMINAL],
+                         code=code, level=level))
 
 
 def import_plugin_class(module_name, class_name):

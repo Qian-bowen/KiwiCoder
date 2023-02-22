@@ -8,7 +8,6 @@ from kiwi.core.bio_op import BioOp
 from termcolor import colored
 from colorama import init
 import datetime
-import keyboard
 
 bus = EventBus()
 

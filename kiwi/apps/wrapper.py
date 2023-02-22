@@ -8,19 +8,33 @@ class Wrapper:
     def __init__(self, wrapper_type, *args, **kwargs):
         """attach the wrapper to environment"""
         self.wrapper_type = wrapper_type
+        self.args = args
+        self.kwargs = kwargs
         GenericEnv().append_wrapper(*args, **kwargs, wrapper=self)
 
     def get_wrapper_type(self):
         return self.wrapper_type
 
+    @abstractmethod
+    def package_name(self) -> str:
+        pass
+
+    def class_name(self) -> str:
+        return self.__class__.__name__
+
+
+# ==================================== #
+#        Protocol Framework            #
+# ==================================== #
 
 class Step(Wrapper):
-    def __init__(self, comment: str, step_spec=""):
+    def __init__(self, comment: str, step_spec="", repeat_times=1):
         step_num, wait_list, parallel_list = Step._parse_step_spec(step_spec)
         super().__init__(step_num=step_num, wait_list=wait_list, children_parallel_list=parallel_list,
                          wrapper_type=ConstWrapper.STEP_WRAPPER)
         self.comment = comment
         self.step_spec = step_spec
+        self.repeat_times = repeat_times
 
     @staticmethod
     def _parse_step_spec(step_spec: str) -> (str, [str], [str]):
@@ -53,6 +67,13 @@ class Step(Wrapper):
 
         return sn, wt, cp
 
+    def package_name(self) -> str:
+        return "kiwi.core"
+
+
+# ==================================== #
+#        Protocol Hardware             #
+# ==================================== #
 
 class Periphery(Wrapper):
     def __init__(self, wrapper_type, company=None, product_number=None, comment=None):
@@ -112,8 +133,22 @@ class FlowMeter(InstrumPeriphery):
         return super().package_name()
 
 
+class PhidgetRelay(ControlPeriphery):
+    def __init__(self, company="", product_number="", comment=None):
+        super().__init__(company=company, product_number=product_number,
+                         comment=comment, wrapper_type=ConstWrapper.PERIPHERY_CONTROL_PHIDGET_RELAY_WRAPPER)
+
+    def package_name(self) -> str:
+        return super().package_name()
+
+
+# ==================================== #
+#        Protocol Utils                #
+# ==================================== #
+
+
 class Container(Wrapper):
-    def __init__(self):
+    def __init__(self, comment=None):
         super().__init__(wrapper_type=ConstWrapper.ENTITY_CONTAINER_WRAPPER)
 
 

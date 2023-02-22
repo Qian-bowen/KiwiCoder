@@ -38,3 +38,6 @@ build/
 .pytest_cache/
 __pycache__
 tmp/
+user/
+dist/
+KiwiCoder.egg*/
