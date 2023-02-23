@@ -69,7 +69,7 @@ class BioOp(ABC):
 
     def _human_run(self) -> SysStatus:
         """ notify human to operate """
-        BioOp._print_to_screen(msg=UserMsg.OP_OPERATE_HUMAN, level=MsgLevel.IMPORTANT)
+        BioOp._print_to_screen(msg=UserMsg.OP_OPERATE_HUMAN_TEMPLATE.format(self.step_name, self.op_index), level=MsgLevel.IMPORTANT)
         self.status = SysStatus.PENDING
         while self.status == SysStatus.PENDING:
             ''' sleep to yield cpu to cmd thread '''
@@ -77,7 +77,6 @@ class BioOp(ABC):
         return SysStatus.SUCCESS
 
     def _signal_handler(self, signal: SysSignal) -> None:
-        print("signal receive")
         if signal == SysSignal.RUN:
             self.all_stage_run()
         elif signal == SysSignal.CONTINUE:
@@ -92,7 +91,7 @@ class BioOp(ABC):
     def _print_to_screen(msg: str, level: MsgLevel):
         bus.emit(event=EventName.SCREEN_PRINT_EVENT,
                  msg=Msg(msg=msg, source=MsgEndpoint.OP, destinations=[MsgEndpoint.USER_TERMINAL],
-                         code=SysStatus.AVAILABLE, level=level))
+                         code=SysStatus.SUCCESS, level=level))
 
     @staticmethod
     def get_op_identifier(step_name: str, op_index: int) -> str:

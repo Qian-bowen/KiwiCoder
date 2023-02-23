@@ -1,5 +1,5 @@
-from kiwi.util import TreeNode, TreeAryN, EventBus, DAG
-from kiwi.common import sort_default, EventName, SysStatus, Msg, MsgEndpoint, MsgLevel, ScheduleMode
+from kiwi.util import TreeAryN, EventBus, DAG
+from kiwi.common import sort_default, EventName, SysStatus, ScheduleMode, TypeErrorException
 from typing import List
 from .step import Step
 import random
@@ -22,15 +22,17 @@ class Strategy:
 
 
 class StepController:
-    def __init__(self):
+    def __init__(self, schedule_mode: ScheduleMode):
         self.step_tree = TreeAryN(sort_func=sort_default)
         self.step_graph = DAG()
-        self.schedule_mode = ScheduleMode.SEQ
+        self._schedule_mode = schedule_mode
         root_step = Step(step_num="0", wait_list=[], children_parallel_list=[])
         self.step_tree.add_node(root_step)
+        self.step_graph.add_node(root_step)
 
     def add_step_list(self, steps: List[Step]):
         for step in steps:
+            step.reset()
             parent_step_key = Step.parent_step(step.step_num)
             self.step_tree.add_node(step, parent_step_key)
 
@@ -38,12 +40,14 @@ class StepController:
         for step in steps:
             self.step_graph.add_node(step)
         for step in steps:
+            parent_step = Step.parent_step(step.step_num)
+            self.step_graph.add_edge_by_key(parent_step, step.step_num)
             younger_brother_step = Step.brother_step(step.step_num, True)
             if younger_brother_step is not None:
-                self.step_graph.add_edge(younger_brother_step, step.step_num)
+                self.step_graph.add_edge_by_key(younger_brother_step, step.step_num)
             wait_list = step.wait_list
             for wait_step_num in wait_list:
-                self.step_graph.add_edge(wait_step_num, step.step_num)
+                self.step_graph.add_edge_by_key(wait_step_num, step.step_num)
         for step in steps:
             parallel_list = step.children_parallel_list
             for pa_i in parallel_list:
@@ -51,22 +55,19 @@ class StepController:
                     if self.step_graph.is_edge_exist(pa_i, pa_j):
                         self.step_graph.delete_edge_by_key(pa_i, pa_j)
 
-    def build_schedule_steps(self, schedule_mode: ScheduleMode) -> None:
-        self.schedule_mode = schedule_mode
-
     def next_steps(self) -> [Step]:
-        schedule_list = []
+        schedule_list = list()
         ''' get steps that are available '''
-        if self.schedule_mode == ScheduleMode.SEQ:
+        if self._schedule_mode == ScheduleMode.SEQ:
             schedule_list = self.step_tree.preorder(exclude_done=True)
-        elif self.schedule_mode == ScheduleMode.GRAPH:
+        elif self._schedule_mode == ScheduleMode.GRAPH:
             schedule_list = self.step_graph.available_nodes()
         if len(schedule_list) == 0:
             return None
         ''' choose steps according to strategy '''
-        if self.schedule_mode == ScheduleMode.SEQ:
+        if self._schedule_mode == ScheduleMode.SEQ:
             return Strategy.next_first(schedule_list)
-        elif self.schedule_mode == ScheduleMode.GRAPH:
+        elif self._schedule_mode == ScheduleMode.GRAPH:
             return Strategy.next_all(schedule_list)
         return []
 
@@ -78,3 +79,17 @@ class StepController:
     @bus.on(event=EventName.STEP_EVENT)
     def _listen_step(self, step_name: str, step_status: SysStatus):
         pass
+
+    @property
+    def schedule_mode(self):
+        return self._schedule_mode
+
+    @schedule_mode.setter
+    def schedule_mode(self, schedule_mode):
+        if type(schedule_mode) == str:
+            schedule_mode = ScheduleMode(int(schedule_mode))
+        elif type(schedule_mode) == int:
+            schedule_mode = ScheduleMode(schedule_mode)
+        else:
+            raise TypeErrorException(expect_type=type(ScheduleMode), actual_type=type(schedule_mode))
+        self._schedule_mode = schedule_mode

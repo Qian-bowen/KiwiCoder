@@ -1,5 +1,5 @@
 from kiwi.util import TreeNode, EventBus
-from kiwi.common import EventName, SysStatus, Msg, MsgEndpoint, MsgLevel
+from kiwi.common import EventName, SysStatus, Msg, MsgEndpoint, MsgLevel, UserMsg
 from typing import Optional
 
 bus = EventBus()
@@ -22,27 +22,35 @@ class Step(TreeNode):
         self.operations = []
         self.status = SysStatus.INIT
 
+    def reset(self):
+        self.__init__(step_num=self.step_num,
+                      wait_list=self.wait_list,
+                      children_parallel_list=self.children_parallel_list)
+
     def done(self) -> bool:
         return self.status == SysStatus.DONE
 
     def append_operation(self, operation) -> None:
         self.operations.append(operation)
 
-    def execute(self) -> None:
+    def execute(self) -> SysStatus:
         """ execute the step operations, if fail, rollback and retry """
-        all_status = SysStatus.INIT
+        all_status = SysStatus.DONE
+        Step._print_to_screen(msg=UserMsg.STEP_START_TEMPLATE.format(self.step_num))
         for op in self.operations:
             op_status = op.all_stage_run()
             if op_status != SysStatus.SUCCESS:
                 rollback_status = op.rollback()
                 if rollback_status == SysStatus.SUCCESS:
-                    re_op_status = op.all_stage_run()
-                    if re_op_status != SysStatus.SUCCESS:
-                        self._fatal_alarm()
+                    op_status = op.all_stage_run()
+                    if op_status != SysStatus.SUCCESS:
+                        all_status = op_status
+                        break
                 else:
-                    self._fatal_alarm()
-        all_status = SysStatus.DONE
-        self.status = SysStatus.DONE
+                    all_status = op_status
+                    break
+        Step._print_to_screen(msg=UserMsg.STEP_END_TEMPLATE.format(self.step_num), code=all_status)
+        self.status = all_status
         return all_status
 
     def rollback(self) -> SysStatus:
@@ -81,7 +89,14 @@ class Step(TreeNode):
             brother_key += seq_nums_list[i] + "."
         return brother_key + brother_last
 
-    def _fatal_alarm(self) -> None:
-        raw = str(self)
-        msg = Msg(msg=raw, source=MsgEndpoint.STEP, destinations=[MsgEndpoint.WATCH], level=MsgLevel.FATAL)
-        bus.emit(event=EventName.FATAL_ALARM_EVENT, msg=msg)
+    @staticmethod
+    def _print_to_screen(msg: str, code=SysStatus.SUCCESS, level=MsgLevel.INFO):
+        bus.emit(event=EventName.SCREEN_PRINT_EVENT,
+                 msg=Msg(msg=msg, source=MsgEndpoint.STEP, destinations=[MsgEndpoint.USER_TERMINAL],
+                         code=code, level=level))
+
+    def __str__(self):
+        return self.step_num
+
+    def __repr__(self):
+        return self.step_num

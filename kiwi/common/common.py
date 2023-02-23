@@ -43,10 +43,10 @@ def with_defer(func) -> Callable:
     return __wrap__
 
 
-def singleton(cls, *args, **kw):
+def singleton(cls):
     _instance = {}
 
-    def __wrapper__():
+    def __wrapper__(*args, **kw):
         if cls not in _instance:
             _instance[cls] = cls(*args, **kw)
         return _instance[cls]

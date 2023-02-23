@@ -1,4 +1,7 @@
-class ConstWrapper:
+from enum import Enum, IntEnum
+
+
+class ConstWrapper(IntEnum):
     BASE_WRAPPER = 0
     STEP_WRAPPER = 1
 
@@ -8,25 +11,49 @@ class ConstWrapper:
     ENTITY_WRAPPER = 1000
     ENTITY_CONTAINER_WRAPPER = 1001
     ENTITY_FLUID_WRAPPER = 1002
+    ENTITY_COLUMN_WRAPPER = 1003
 
     QUANTITY_WRAPPER = 1800
     QUANTITY_VOL_WRAPPER = 1801
 
     PERIPHERY_WRAPPER = 2000
-    PERIPHERY_CONTROL_WRAPPER = 2001
-    PERIPHERY_INSTRUM_WRAPPER = 2002
-    PERIPHERY_SIGNAL_WRAPPER = 2003
+    PERIPHERY_CONTROL_WRAPPER = 2500
+    PERIPHERY_INSTRUM_WRAPPER = 3000
+    PERIPHERY_SIGNAL_WRAPPER = 3500
+
+    PERIPHERY_CONTROL_PHIDGET_RELAY_WRAPPER = 2500
+    PERIPHERY_INSTRUM_FLOW_METER_WRAPPER = 3001
+
+    LIMIT = 10000
 
     @staticmethod
     def is_op_wrapper(wrapper_type: int) -> bool:
-        return ConstWrapper.OP_WRAPPER <= wrapper_type < ConstWrapper.ENTITY_WRAPPER
+        return ConstWrapper.OP_WRAPPER.value <= wrapper_type < ConstWrapper.ENTITY_WRAPPER.value
 
     @staticmethod
     def is_quantity_wrapper(wrapper_type: int) -> bool:
-        return ConstWrapper.QUANTITY_WRAPPER <= wrapper_type < ConstWrapper.PERIPHERY_WRAPPER
+        return ConstWrapper.QUANTITY_WRAPPER.value <= wrapper_type < ConstWrapper.PERIPHERY_WRAPPER.value
+
+    @staticmethod
+    def is_periphery_wrapper(wrapper_type: int) -> bool:
+        return ConstWrapper.PERIPHERY_WRAPPER.value <= wrapper_type < ConstWrapper.LIMIT.value
+
+    @staticmethod
+    def get_class_name(wrapper_type: int) -> str:
+        enum_type = ConstWrapper(wrapper_type)
+        enum_name = enum_type.name
+        raw_name_list = enum_name.split('_')
+        core_name = []
+        final_name = ""
+        if ConstWrapper.is_periphery_wrapper(wrapper_type):
+            core_name = raw_name_list[2:-1]
+        for name in core_name:
+            lower_str = name.title()
+            final_name += lower_str
+        return final_name
 
 
-class SysStatus:
+class SysStatus(IntEnum):
     FAIL = 0
     SUCCESS = 1
 
@@ -37,7 +64,7 @@ class SysStatus:
     DONE = 104
 
 
-class MsgLevel:
+class MsgLevel(IntEnum):
     GOSSIP = 0
     INFO = 1
     IMPORTANT = 2
@@ -68,6 +95,7 @@ class MsgEndpoint:
     STEP = "step"
     WATCH = "watch"
     USER_TERMINAL = "user_terminal"
+    SYS = "sys"
 
 
 class EventName:
@@ -92,16 +120,20 @@ class SysSignal:
     CONTINUE = 4
 
 
-class ScheduleMode:
+class ScheduleMode(IntEnum):
     SEQ = 0
     GRAPH = 1
 
 
 class UserMsg:
-    OP_OPERATE_HUMAN = "This operation requires human. Send 'Continue' signal when finish."
+    OP_OPERATE_HUMAN_TEMPLATE = "This operation(step:{} op:{}) requires human. Send 'Continue' signal when finish."
     OP_STAGE_START_TEMPLATE = "Step:{} Operation:{} Stage:{} begin."
     OP_STAGE_END_TEMPLATE = "Step:{} Operation:{} Stage:{} finish."
+    STEP_START_TEMPLATE = "Step:{} begin."
+    STEP_END_TEMPLATE = "Step:{} finish."
+    SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE = "Overload user-defined: {}"
 
 
 class Config:
     OUTPUT_MSG_BUFFER_SIZE = 100
+    USER_DEFINED_PACKAGE = "user"
