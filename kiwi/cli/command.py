@@ -31,9 +31,15 @@ class Cmd:
         cmd_segments = raw_cmd.split(' ')
         if cmd_segments[0] == "help":
             pass
+        elif cmd_segments[0] == "load":
+            self.callback_sys.load_module()
         elif cmd_segments[0] == "scan":
             self.callback_sys.task_scanner()
         elif cmd_segments[0] == "run":
+            self.callback_sys.run_task()
+        elif cmd_segments[0] == "auto":
+            self.callback_sys.load_module()
+            self.callback_sys.task_scanner()
             self.callback_sys.run_task()
         elif cmd_segments[0] == "out":
             if cmd_segments[1] == "-o":
