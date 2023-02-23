@@ -6,7 +6,7 @@ from kiwi.core.bio_obj import BioObject
 from typing import Dict, Callable
 from kiwi.core.sched import StepController
 from kiwi.common import singleton, ConstWrapper, ScheduleMode, ModuleNotFoundException, ClassNotFoundException, Config, \
-    SysStatus, MsgLevel, MsgEndpoint, EventName, Msg, UserMsg
+    SysStatus, MsgLevel, MsgEndpoint, EventName, Msg, UserMsg, UserDefined
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 
@@ -41,9 +41,9 @@ class GenericEnv:
     def _wrapper2core(self, wrapper, *args, **kwargs):
         """ try to find user defined op class dynamically, or use the default one """
         if wrapper.class_name() in self.overload_core_obj:
-            target_class_template = import_plugin_class(Config.USER_DEFINED_PACKAGE, wrapper.class_name())
+            target_class_template = import_dynamic(Config.USER_DEFINED_PACKAGE, wrapper.class_name())
         else:
-            target_class_template = import_plugin_class(wrapper.package_name(), wrapper.class_name())
+            target_class_template = import_dynamic(wrapper.package_name(), wrapper.class_name())
         ''' convert wrapper to core object '''
         if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
             step = target_class_template(*args, **kwargs)
@@ -77,10 +77,15 @@ class KiwiSys:
         pass
 
     def task_scanner(self):
-        self._load_module()
         self._scan_user_defined_package()
         GenericEnv().build_wrapper()
         self._scan_env()
+
+    def load_module(self):
+        """ load core module and user-defined functions and class """
+        import_module(Config.USER_DEFINED_PACKAGE)
+        kiwi_protocol = import_dynamic(Config.USER_DEFINED_PACKAGE, UserDefined.MAIN_PROTOCOL_FUNC)
+        kiwi_protocol()
 
     def run_task(self):
         task_thread = Thread(target=self._thread_run_task)
@@ -127,13 +132,6 @@ class KiwiSys:
         """scan steps and build process graph"""
         pass
 
-    def _load_module(self):
-        """ load basic modules """
-        try:
-            __import__(Config.USER_DEFINED_PACKAGE)
-        except ImportError:
-            raise ModuleNotFoundException(Config.USER_DEFINED_PACKAGE)
-
     def _scan_user_defined_package(self):
         """ all user defined function or class name into system """
         overload_msg = ""
@@ -168,14 +166,22 @@ class KiwiSys:
                          code=code, level=level))
 
 
-def import_plugin_class(module_name, class_name):
-    """ dynamic load class from module """
+def import_dynamic(module_name, target_name):
+    """ dynamic specific func or class from module """
     try:
-        module = __import__(module_name, fromlist=[class_name])
+        module = __import__(module_name, fromlist=[target_name])
     except ImportError:
         raise ModuleNotFoundException(module_name)
     try:
-        target_class = getattr(module, class_name)
+        target = getattr(module, target_name)
     except AttributeError:
-        raise ClassNotFoundException(class_name)
-    return target_class
+        raise ClassNotFoundException(target_name)
+    return target
+
+
+def import_module(module_name):
+    """ load basic modules """
+    try:
+        __import__(module_name)
+    except ImportError:
+        raise ModuleNotFoundException(module_name)

@@ -137,3 +137,7 @@ class UserMsg:
 class Config:
     OUTPUT_MSG_BUFFER_SIZE = 100
     USER_DEFINED_PACKAGE = "user"
+
+
+class UserDefined:
+    MAIN_PROTOCOL_FUNC = "kiwi_protocol"
