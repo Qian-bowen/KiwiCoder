@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+import re
 import sys
 
 from kiwi.core.bio_obj import BioObject
@@ -40,6 +41,7 @@ class GenericEnv:
 
     def _wrapper2core(self, wrapper, *args, **kwargs):
         """ try to find user defined op class dynamically, or use the default one """
+        print(wrapper.class_name())
         if wrapper.class_name() in self.overload_core_obj:
             target_class_template = import_dynamic(Config.USER_DEFINED_PACKAGE, wrapper.class_name())
         else:
@@ -134,11 +136,15 @@ class KiwiSys:
 
     def _scan_user_defined_package(self):
         """ all user defined function or class name into system """
+
+        mod = sys.modules[Config.USER_DEFINED_PACKAGE]
         overload_msg = ""
-        for name, obj in inspect.getmembers(sys.modules[Config.USER_DEFINED_PACKAGE]):
-            if inspect.isclass(obj) or inspect.isfunction(obj):
+
+        for name, obj in inspect.getmembers(mod):
+            if (inspect.isclass(obj) or inspect.isfunction(obj)) \
+                    and re.match(Config.USER_DEFINED_PACKAGE+'.*', obj.__module__) is not None:
                 GenericEnv().add_overload_obj(name)
-                overload_msg += name
+                overload_msg += name + ", "
         self._print_to_screen(UserMsg.SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE.format(overload_msg))
 
     def _scan_entity(self):

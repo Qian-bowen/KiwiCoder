@@ -143,7 +143,7 @@ class PhidgetRelay(ControlPeriphery):
 
 
 # ==================================== #
-#        Protocol Utils                #
+#                Items                 #
 # ==================================== #
 
 
@@ -152,10 +152,39 @@ class Container(Wrapper):
         super().__init__(wrapper_type=ConstWrapper.ENTITY_CONTAINER_WRAPPER)
 
 
+class Column(Wrapper):
+    def __init__(self):
+        super().__init__(wrapper_type=ConstWrapper.ENTITY_COLUMN_WRAPPER)
+
+class Plate(Wrapper):
+    def __init__(self):
+        super().__init__(wrapper_type=ConstWrapper.ENTITY_PLATE_WRAPPER)
+
+
 class Fluid(Wrapper):
     def __init__(self):
         super().__init__(wrapper_type=ConstWrapper.ENTITY_FLUID_WRAPPER)
 
-# class Vol(Wrapper):
-#     def __init__(self):
-#         super().__init__(wrapper_type=ConstWrapper.QUANTITY_VOL_WRAPPER)
+
+# ==================================== #
+#                Units                 #
+# ==================================== #
+
+class Vol(Wrapper):
+    def __init__(self):
+        super().__init__(wrapper_type=ConstWrapper.QUANTITY_VOL_WRAPPER)
+
+
+class Speed(Wrapper):
+    def __init__(self):
+        super().__init__(wrapper_type=ConstWrapper.QUANTITY_SPEED_WRAPPER)
+
+
+class Temperature(Wrapper):
+    def __init__(self):
+        super().__init__(wrapper_type=ConstWrapper.QUANTITY_TEMPERATURE_WRAPPER)
+
+
+class Time(Wrapper):
+    def __init__(self):
+        super().__init__(wrapper_type=ConstWrapper.QUANTITY_TIME_WRAPPER)

@@ -3,7 +3,7 @@ import sys
 
 protocol_file_content = \
     "# define experiment protocol in this file\n" \
-    "from kiwi.apps import Step\n\n" \
+    "from kiwi import Step\n\n" \
     "def kiwi_protocol():\n" \
     "\t\"\"\" Define experiment protocol. \"\"\"\n" \
     "\tStep(\"example step 1\", \"sn:1\")\n\n\n"
@@ -13,10 +13,10 @@ override_file_content = \
 
 main_file_content = \
     "# DO NOT MODIFY THIS FILE\n" \
-    "from kiwi.apps import KiwiCoder\n\n" \
+    "from kiwi import KiwiCoder as Coder\n\n" \
     "def run_kiwi():\n" \
-    "\tkiwi = KiwiCoder()\n" \
-    "\tkiwi.run()\n\n" \
+    "\tkiwi_coder = Coder()\n" \
+    "\tkiwi_coder.run()\n\n" \
     "def main():\n" \
     "\trun_kiwi()\n\n" \
     "if __name__ == \"__main__\":\n" \

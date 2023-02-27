@@ -12,9 +12,13 @@ class ConstWrapper(IntEnum):
     ENTITY_CONTAINER_WRAPPER = 1001
     ENTITY_FLUID_WRAPPER = 1002
     ENTITY_COLUMN_WRAPPER = 1003
+    ENTITY_PLATE_WRAPPER = 1004
 
     QUANTITY_WRAPPER = 1800
     QUANTITY_VOL_WRAPPER = 1801
+    QUANTITY_SPEED_WRAPPER = 1802
+    QUANTITY_TEMPERATURE_WRAPPER = 1803
+    QUANTITY_TIME_WRAPPER = 1804
 
     PERIPHERY_WRAPPER = 2000
     PERIPHERY_CONTROL_WRAPPER = 2500
@@ -142,3 +146,9 @@ class Config:
 class UserDefined:
     MAIN_PROTOCOL_FUNC = "kiwi_protocol"
 
+
+# ==================================== #
+#            Biology type              #
+# ==================================== #
+class PCRType:
+    pass
