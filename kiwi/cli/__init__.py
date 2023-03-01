@@ -1,1 +1,1 @@
-from .command import Cmd
+from kiwi.cli.command import Cmd

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict, List, Callable
-from threading import Lock
 
 from .bio_periphery import Periphery, MeasureInstrumPeriphery
 from .bio_quantity import Volume

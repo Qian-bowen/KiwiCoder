@@ -2,8 +2,8 @@ from queue import Queue
 from time import sleep
 
 from kiwi.util import EventBus
-from kiwi.common import EventName, Msg, Config, MsgLevel, SysSignal, MsgEndpoint, SysStatus
-from kiwi.core import KiwiSys
+from kiwi.common import EventName, Msg, Config, MsgLevel, SysSignal
+from kiwi.core.kiwi_sys import KiwiSys
 from kiwi.core.bio_op import BioOp
 from termcolor import colored
 from colorama import init

@@ -1,6 +1,11 @@
 from pathlib import Path
 import sys
 
+init_file_content = \
+    "# DO NOT MODIFY THIS FILE\n" \
+    "from .protocol import *\n" \
+    "from .override import *\n\n"
+
 protocol_file_content = \
     "# define experiment protocol in this file\n" \
     "from kiwi import Step\n\n" \
@@ -13,12 +18,12 @@ override_file_content = \
 
 main_file_content = \
     "# DO NOT MODIFY THIS FILE\n" \
-    "from kiwi import KiwiCoder as Coder\n\n" \
+    "from kiwi import KiwiCoder as Coder\n\n\n" \
     "def run_kiwi():\n" \
     "\tkiwi_coder = Coder()\n" \
-    "\tkiwi_coder.run()\n\n" \
+    "\tkiwi_coder.run()\n\n\n" \
     "def main():\n" \
-    "\trun_kiwi()\n\n" \
+    "\trun_kiwi()\n\n\n" \
     "if __name__ == \"__main__\":\n" \
     "\tmain()\n\n"
 
@@ -27,6 +32,9 @@ class Generator:
     def __init__(self, base_path: str):
         self.base_path = base_path
         self.folder_name = "keee-weee"
+
+    def _generate_init_file(self, file):
+        file.write(init_file_content)
 
     def _generate_protocol_file(self, file):
         file.write(protocol_file_content)
@@ -45,6 +53,7 @@ class Generator:
         f.close()
         Path(path + '/user').mkdir()
         f = Path(path + "/user/__init__.py").open("w+")
+        self._generate_init_file(f)
         f.close()
         f = Path(path + "/user/protocol.py").open("w+")
         self._generate_protocol_file(f)

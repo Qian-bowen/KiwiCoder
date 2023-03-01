@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from kiwi.common import ConstWrapper, ParseParamException
-from kiwi.core import GenericEnv
+from kiwi.core.kiwi_sys import GenericEnv
 
 
 class Wrapper:
