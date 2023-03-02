@@ -11,7 +11,7 @@ class Step(TreeNode):
     Step is the minimum unit for scheduling.
     """
 
-    def __init__(self, step_num: str, wait_list: [str], children_parallel_list: [str]):
+    def __init__(self, step_num: str, wait_list: [str], children_parallel_list: [str], repeat_times: int):
         """
             step_num: step hierarchy, e.g. 1.2.1
         """
@@ -19,13 +19,15 @@ class Step(TreeNode):
         self.step_num = step_num
         self.wait_list = wait_list
         self.children_parallel_list = children_parallel_list
+        self.repeat_times = repeat_times
         self.operations = []
         self.status = SysStatus.INIT
 
     def reset(self):
         self.__init__(step_num=self.step_num,
                       wait_list=self.wait_list,
-                      children_parallel_list=self.children_parallel_list)
+                      children_parallel_list=self.children_parallel_list,
+                      repeat_times=self.repeat_times)
 
     def done(self) -> bool:
         return self.status == SysStatus.DONE
@@ -36,20 +38,22 @@ class Step(TreeNode):
     def execute(self) -> SysStatus:
         """ execute the step operations, if fail, rollback and retry """
         all_status = SysStatus.DONE
-        Step._print_to_screen(msg=UserMsg.STEP_START_TEMPLATE.format(self.step_num))
-        for op in self.operations:
-            op_status = op.all_stage_run()
-            if op_status != SysStatus.SUCCESS:
-                rollback_status = op.rollback()
-                if rollback_status == SysStatus.SUCCESS:
-                    op_status = op.all_stage_run()
-                    if op_status != SysStatus.SUCCESS:
+        for step_repeat_time in range(0, self.repeat_times):
+            Step._print_to_screen(
+                msg=UserMsg.STEP_START_TEMPLATE.format(self.step_num, self.repeat_times, step_repeat_time))
+            for op in self.operations:
+                op_status = op.all_stage_run()
+                if op_status != SysStatus.SUCCESS:
+                    rollback_status = op.rollback()
+                    if rollback_status == SysStatus.SUCCESS:
+                        op_status = op.all_stage_run()
+                        if op_status != SysStatus.SUCCESS:
+                            all_status = op_status
+                            break
+                    else:
                         all_status = op_status
                         break
-                else:
-                    all_status = op_status
-                    break
-        Step._print_to_screen(msg=UserMsg.STEP_END_TEMPLATE.format(self.step_num), code=all_status)
+            Step._print_to_screen(msg=UserMsg.STEP_END_TEMPLATE.format(self.step_num), code=all_status)
         self.status = all_status
         return all_status
 

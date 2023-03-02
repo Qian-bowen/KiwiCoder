@@ -2,8 +2,13 @@ from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict, List, Callable
 
+from kiwi.util.graph import DAG
+
+from kiwi.core.bio_obj import BioObject
+from .bio_entity import Container
+
 from .bio_periphery import Periphery, MeasureInstrumPeriphery
-from .bio_quantity import Volume
+from .bio_quantity import Volume, Temperature
 from kiwi.common import SysStatus, EventName, Msg, MsgEndpoint, MsgLevel, AutoLevel, SysSignal, with_defer, defer, \
     UserMsg
 from kiwi.util import EventBus
@@ -16,7 +21,8 @@ class BioOp(ABC):
             self,
             step_name: str,
             op_index: int,
-            auto_level=AutoLevel.FULL
+            dependency_graph: DAG,
+            auto_level=AutoLevel.FULL,
     ):
         """
         Args:
@@ -25,17 +31,21 @@ class BioOp(ABC):
             auto_level: the operation needs human or not
             operation has at most three stages, pre run & post run can be block by human, run is the main part
         """
+        self.id = None
+        self.name = None
         self.step_name = step_name
         self.op_index = op_index
+        self.key = BioOp.get_op_identifier(self.step_name, self.op_index)
         self.auto_level = auto_level
+        self.dependency_graph = dependency_graph
         self.periphery_dict = Dict[int, Periphery]
+        self.bio_obj_dict = Dict[int, BioObject]
         self.status = SysStatus.INIT
         self.run_funcs = List[Callable]
 
         bus.add_event(func=self._signal_handler,
                       event=EventName.OP_SIGNAL_RECEIVE_EVENT
                       .format(BioOp.get_op_identifier(self.step_name, self.op_index)))
-        print("auto level:{}".format(self.auto_level))
         if auto_level == AutoLevel.FULL:
             self.run_funcs = [self._run]
         elif auto_level == AutoLevel.SEMI:
@@ -46,11 +56,17 @@ class BioOp(ABC):
     def __str__(self) -> str:
         return self._pack_op_info()
 
+    def delay_init(self, step_name: str, op_index: int, auto_level=AutoLevel.FULL):
+        self.step_name = step_name
+        self.op_index = op_index
+        self.auto_level = auto_level
+
     def attach_periphery(self, periphery: Periphery) -> None:
         self.periphery_dict[periphery.get_id_um()] = periphery
         return
 
     def all_stage_run(self) -> SysStatus:
+        """ run the whole operation """
         for func in self.run_funcs:
             BioOp._print_to_screen(msg=UserMsg.OP_STAGE_START_TEMPLATE
                                    .format(self.step_name, self.op_index, func.__name__), level=MsgLevel.INFO)
@@ -68,7 +84,8 @@ class BioOp(ABC):
 
     def _human_run(self) -> SysStatus:
         """ notify human to operate """
-        BioOp._print_to_screen(msg=UserMsg.OP_OPERATE_HUMAN_TEMPLATE.format(self.step_name, self.op_index), level=MsgLevel.IMPORTANT)
+        BioOp._print_to_screen(msg=UserMsg.OP_OPERATE_HUMAN_TEMPLATE.format(self.step_name, self.op_index),
+                               level=MsgLevel.IMPORTANT)
         self.status = SysStatus.PENDING
         while self.status == SysStatus.PENDING:
             ''' sleep to yield cpu to cmd thread '''
@@ -96,6 +113,11 @@ class BioOp(ABC):
     def get_op_identifier(step_name: str, op_index: int) -> str:
         return step_name + " " + str(op_index)
 
+    @abstractmethod
+    def get_html_text(self) -> str:
+        """ output the text describe the operation """
+        pass
+
 
 class MeasureFluidOp(BioOp):
     def __init__(self, step_name: str, op_index: int, vol: Volume, measure_instrum: MeasureInstrumPeriphery,
@@ -118,26 +140,27 @@ class MeasureFluidOp(BioOp):
             driver.shutdown()
         return SysStatus.SUCCESS
 
-
-class Heat(BioOp):
-    def __init__(self, step_name: str, op_index: int):
-        super().__init__(step_name, op_index)
-
-
-class FirstStepOp(BioOp):
-    def __init__(self, step_name: str):
-        super().__init__(step_name=step_name)
-
-    def run(self) -> None:
-        pass
+    def get_html_text(self) -> str:
+        """ output the text describe the operation """
+        return ""
 
 
-class StartProtocolOp(BioOp):
-    def __init__(
-            self,
-            step_name: str
-    ):
-        super().__init__(step_name=step_name)
+# ==================================== #
+#              6. Storage              #
+# ==================================== #
+class StoreOp(BioOp):
+    """ Stores the specified container at a given temperature. """
 
-    def run(self) -> None:
-        pass
+    def __init__(self, container: Container, temp: Temperature, step_name: str, op_index: int, dependency_graph: DAG):
+        super().__init__(step_name, op_index, dependency_graph)
+        self.dependency_graph.add_node(target_node=container)
+        self.dependency_graph.add_node(target_node=self)
+        self.dependency_graph.add_edge(container, self)
+
+    def _run(self) -> SysStatus:
+        print("run store op, hello world")
+        return SysStatus.SUCCESS
+
+    def get_html_text(self) -> str:
+        """ output the text describe the operation """
+        return ""

@@ -7,6 +7,7 @@ class ConstWrapper(IntEnum):
 
     OP_WRAPPER = 10
     OP_MEASURE_FLUID_WRAPPER = 11
+    OP_STORE_WRAPPER = 12
 
     ENTITY_WRAPPER = 1000
     ENTITY_CONTAINER_WRAPPER = 1001
@@ -55,6 +56,17 @@ class ConstWrapper(IntEnum):
             lower_str = name.title()
             final_name += lower_str
         return final_name
+
+    @staticmethod
+    def get_op_class_name(wrapper_type: int) -> str:
+        enum_type = ConstWrapper(wrapper_type)
+        enum_name = enum_type.name
+        raw_name_list = enum_name.split('_')[1:-1]
+        final_name = ""
+        for name in raw_name_list:
+            name = name.lower()
+            final_name += name.title()
+        return final_name + "Op"
 
 
 class SysStatus(IntEnum):
@@ -133,7 +145,7 @@ class UserMsg:
     OP_OPERATE_HUMAN_TEMPLATE = "This operation(step:{} op:{}) requires human. Send 'Continue' signal when finish."
     OP_STAGE_START_TEMPLATE = "Step:{} Operation:{} Stage:{} begin."
     OP_STAGE_END_TEMPLATE = "Step:{} Operation:{} Stage:{} finish."
-    STEP_START_TEMPLATE = "Step:{} begin."
+    STEP_START_TEMPLATE = "Step:{} begin. Repeat times:{}. Already execute {} times."
     STEP_END_TEMPLATE = "Step:{} finish."
     SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE = "Overload user-defined: {}"
 
@@ -141,6 +153,7 @@ class UserMsg:
 class Config:
     OUTPUT_MSG_BUFFER_SIZE = 100
     USER_DEFINED_PACKAGE = "user"
+    CORE_OP_PACKAGE = "kiwi.core.bio_op"
 
 
 class UserDefined:
@@ -152,3 +165,13 @@ class UserDefined:
 # ==================================== #
 class PCRType:
     pass
+
+
+class UntilType:
+    pass
+
+
+class ContainerType:
+    STERILE_MICROFUGE_TUBE = 0
+    CENTRIFUGE_TUBE_15ML = 1
+    FLASK = 2

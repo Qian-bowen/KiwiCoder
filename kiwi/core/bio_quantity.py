@@ -24,3 +24,23 @@ class Volume(Quantity):
             return self.value
         elif self.unit_denote == "ul":
             return self.value * 0.001
+
+
+class Speed(Quantity):
+    pass
+
+
+class Temperature(Quantity):
+    ON_ICE = 0.0
+    ON_BOIL = 100.0
+
+    def __init__(self, temp: float):
+        super().__init__(value=temp, unit_denote="dc")
+        self.temp = temp
+
+    def std_value(self) -> float:
+        return self.temp
+
+
+class Time(Quantity):
+    pass

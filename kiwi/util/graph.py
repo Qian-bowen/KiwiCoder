@@ -8,12 +8,12 @@ class DAG:
 
     def add_node(self, target_node) -> None:
         if target_node in self.graph:
-            raise KeyError('node %s already exist' % target_node)
+            return
         self.graph[target_node] = set()
         self.key2node[target_node.key] = target_node
 
     def delete_node(self, target_node) -> None:
-        if target_node in self.graph:
+        if target_node not in self.graph:
             raise KeyError('node %s already exist' % target_node)
         self.graph.pop(target_node)
         for u in self.graph:

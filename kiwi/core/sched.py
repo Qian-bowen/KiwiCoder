@@ -26,7 +26,7 @@ class StepController:
         self.step_tree = TreeAryN(sort_func=sort_default)
         self.step_graph = DAG()
         self._schedule_mode = schedule_mode
-        root_step = Step(step_num="0", wait_list=[], children_parallel_list=[])
+        root_step = Step(step_num="0", wait_list=[], children_parallel_list=[], repeat_times=1)
         self.step_tree.add_node(root_step)
         self.step_graph.add_node(root_step)
 
