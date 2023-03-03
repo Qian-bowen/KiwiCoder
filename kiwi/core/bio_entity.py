@@ -17,7 +17,7 @@ class Plate(BioObject):
 
 
 class Fluid(BioObject):
-    def __init__(self, name: str, temp=None, volume=None):
+    def __init__(self, name: str, state=None, temp=None, volume=None):
         super().__init__()
         self.temp = temp
         self.volume = volume

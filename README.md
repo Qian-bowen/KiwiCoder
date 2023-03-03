@@ -21,7 +21,7 @@ You can generate your first project.
 kiwi-gen {your path}
 ```
 
-The project hierarchy is shown below.
+The project hierarchy is shown as below.
 ```
 ├── keee-weee
 │    ├── user
@@ -49,16 +49,83 @@ If you want to use user-defined class or functions, you can override them in `ov
 Then you can run the main script, and a command line will appear. You can run your protocol by entering the following commands.
 
 ```
-kiwi>load
-kiwi>scan
-kiwi>run
+kiwi>auto
 ```
 
 
 
 ## Usage
 
-TODO
+### Commands
+
+#### load & scan & run
+
+You can initialize the experiment by following commands.
+
+```
+kiwi>load
+kiwi>scan
+kiwi>run
+```
+
+* load: load the protocol and user-defined objects.
+* scan: scan the protocol and build basic runtime environment.
+* run: run the whole experiment.
+
+#### ctrl
+
+You can control and debug by following commands.
+
+```
+kiwi> ctrl -sp {step number} -op {operation index} {signal parameter}
+```
+
+* ctrl: the control command
+
+| Signal   | Signal Parameter |
+| -------- | ---------------- |
+| STOP     | s                |
+| RUN      | r                |
+| SUSPEND  | p                |
+| KILL     | k                |
+| CONTINUE | c                |
+
+#### sys
+
+You can get or set some system variables or status by following commands.
+
+```
+kiwi>sys show {var name}
+kiwi>sys set {var name} {var value}
+```
+
+
+
+### Bio Operation
+
+#### Automation Level
+
+
+
+#### Mock & Self-Defined Operation
+
+
+
+### Bio Object
+
+
+
+
+
+### Experiment Report
+
+You can generate your report in html format, with a dot file which contains the experiment graph.
+
+
+
+### Monitor
+
+
 
 
 

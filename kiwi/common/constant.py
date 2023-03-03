@@ -128,7 +128,7 @@ class AutoLevel:
     FULL = 2
 
 
-class SysSignal:
+class SysSignal(IntEnum):
     STOP = 0
     RUN = 1
     SUSPEND = 2
@@ -145,6 +145,7 @@ class UserMsg:
     OP_OPERATE_HUMAN_TEMPLATE = "This operation(step:{} op:{}) requires human. Send 'Continue' signal when finish."
     OP_STAGE_START_TEMPLATE = "Step:{} Operation:{} Stage:{} begin."
     OP_STAGE_END_TEMPLATE = "Step:{} Operation:{} Stage:{} finish."
+    OP_SIGNAL_TEMPLATE = "Step:{} Operation:{} receive signal :{}."
     STEP_START_TEMPLATE = "Step:{} begin. Repeat times:{}. Already execute {} times."
     STEP_END_TEMPLATE = "Step:{} finish."
     SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE = "Overload user-defined: {}"
@@ -175,3 +176,4 @@ class ContainerType:
     STERILE_MICROFUGE_TUBE = 0
     CENTRIFUGE_TUBE_15ML = 1
     FLASK = 2
+    EPPENDORF = 3

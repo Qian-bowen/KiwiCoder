@@ -3,6 +3,7 @@ import inspect
 import re
 import sys
 
+from kiwi.core.report import ReportGen
 from kiwi.core.watch import Watcher
 from kiwi.util.graph import DAG
 
@@ -88,6 +89,7 @@ class KiwiSys:
         self.obj_relation = Dict[BioObject, BioObject]
         self.step_controller = StepController(schedule_mode)
         self.watcher = Watcher()
+        self.report_gen = ReportGen()
         self.thread_pool = ThreadPoolExecutor(max_workers=thread_pool_size)
         self.sys_var_map = Dict[str, Callable]
 
@@ -112,6 +114,9 @@ class KiwiSys:
     def run_task(self):
         task_thread = Thread(target=self._thread_run_task)
         task_thread.start()
+
+    def report_gen_graph_topology(self, filename):
+        self.report_gen.gen_graph_topology_file(filename)
 
     def set_sys_variable(self, var_name: str, var_value) -> str:
         self.sys_var_map[var_name + "_setter"](var_value)

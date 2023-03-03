@@ -41,20 +41,27 @@ class Cmd:
             self.callback_sys.load_module()
             self.callback_sys.task_scanner()
             self.callback_sys.run_task()
-        elif cmd_segments[0] == "out":
+        elif cmd_segments[0] == "print":
             if cmd_segments[1] == "-o":
                 self.output.set_can_print(True)
             elif cmd_segments[1] == "-c":
                 self.output.set_can_print(False)
+        elif cmd_segments[0] == "report":
+            if cmd_segments[1] == "process":
+                filename = cmd_segments[2]
+                self.callback_sys.report_gen_graph_topology(filename)
         elif cmd_segments[0] == "ctrl":
-            if cmd_segments[1] == "-sp" and cmd_segments[3] == "-op" and cmd_segments[5] == "-d":
+            if cmd_segments[1] == "-sp" and cmd_segments[3] == "-op":
+                """ send signal """
                 step_name = cmd_segments[2]
                 operation_index = cmd_segments[4]
-                do_cmd = cmd_segments[6]
+                do_cmd = cmd_segments[5]
                 sig = Cmd._cmd_param_to_signal(do_cmd)
                 bus.emit(event=EventName.OP_SIGNAL_RECEIVE_EVENT
                          .format(BioOp.get_op_identifier(step_name=step_name, op_index=int(operation_index))),
                          signal=sig)
+            elif cmd_segments[1] == "show":
+                pass
         elif cmd_segments[0] == "sys":
             if cmd_segments[1] == "show":
                 var_name = cmd_segments[2]

@@ -33,6 +33,7 @@ class Speed(Quantity):
 class Temperature(Quantity):
     ON_ICE = 0.0
     ON_BOIL = 100.0
+    ROOM = 28
 
     def __init__(self, temp: float):
         super().__init__(value=temp, unit_denote="dc")

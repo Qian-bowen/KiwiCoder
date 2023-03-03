@@ -93,3 +93,39 @@ def class_mock_enable(cls_t):
 
 def sort_default(origin_list: []):
     origin_list.sort()
+
+
+registry = {}
+
+
+class MultiMethod(object):
+    def __init__(self, name):
+        self.name = name
+        self.type_map = {}
+
+    def __call__(self, *args):
+        types = tuple(arg.__class__ for arg in args)
+        function = self.type_map.get(types)
+        if function is None:
+            raise TypeError("no match")
+        return function(*args)
+
+    def register(self, types, function):
+        if types in self.type_map:
+            raise TypeError("duplicate register")
+        self.type_map[types] = function
+
+
+def multimethod(*types):
+    """ support overload for python function """
+    def register(function):
+        function = getattr(function, "__lastreg__", function)
+        name = function.__name__
+        mm = registry.get(name)
+        if mm is None:
+            mm = registry[name] = MultiMethod(name)
+        mm.register(types, function)
+        mm.__lastreg__ = function
+        return mm
+
+    return register

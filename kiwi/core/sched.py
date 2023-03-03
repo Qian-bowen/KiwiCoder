@@ -32,7 +32,6 @@ class StepController:
 
     def add_step_list(self, steps: List[Step]):
         for step in steps:
-            step.reset()
             parent_step_key = Step.parent_step(step.step_num)
             self.step_tree.add_node(step, parent_step_key)
 

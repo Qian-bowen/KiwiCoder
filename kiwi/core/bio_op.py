@@ -66,7 +66,11 @@ class BioOp(ABC):
         return
 
     def all_stage_run(self) -> SysStatus:
-        """ run the whole operation """
+        """ run the whole operation, check status first """
+        while self.status == SysStatus.PENDING:
+            ''' sleep to yield cpu to cmd thread '''
+            sleep(0.1)
+
         for func in self.run_funcs:
             BioOp._print_to_screen(msg=UserMsg.OP_STAGE_START_TEMPLATE
                                    .format(self.step_name, self.op_index, func.__name__), level=MsgLevel.INFO)
@@ -94,11 +98,14 @@ class BioOp(ABC):
 
     def _signal_handler(self, signal: SysSignal) -> None:
         if signal == SysSignal.RUN:
+            self.status = SysStatus.RUNNING
             self.all_stage_run()
         elif signal == SysSignal.CONTINUE:
             self.status = SysStatus.RUNNING
-            BioOp._print_to_screen(msg=UserMsg.OP_STAGE_END_TEMPLATE
-                                   .format(self.step_name, self.op_index, "_human_run"), level=MsgLevel.INFO)
+        elif signal == SysSignal.SUSPEND:
+            self.status = SysStatus.PENDING
+        BioOp._print_to_screen(msg=UserMsg.OP_SIGNAL_TEMPLATE
+                               .format(self.step_name, self.op_index, signal.name), level=MsgLevel.INFO)
 
     def _pack_op_info(self) -> str:
         pass
@@ -151,8 +158,9 @@ class MeasureFluidOp(BioOp):
 class StoreOp(BioOp):
     """ Stores the specified container at a given temperature. """
 
-    def __init__(self, container: Container, temp: Temperature, step_name: str, op_index: int, dependency_graph: DAG):
-        super().__init__(step_name, op_index, dependency_graph)
+    def __init__(self, container: Container, temp: Temperature, step_name: str, op_index: int, dependency_graph: DAG,
+                 auto_level=AutoLevel.FULL):
+        super().__init__(step_name, op_index, dependency_graph, auto_level)
         self.dependency_graph.add_node(target_node=container)
         self.dependency_graph.add_node(target_node=self)
         self.dependency_graph.add_edge(container, self)
