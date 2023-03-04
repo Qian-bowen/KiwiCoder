@@ -37,3 +37,13 @@ class ClassNotFoundException(Exception):
 
     def __str__(self):
         return repr("class {} not found".format(self.name))
+
+
+class ToBeImplementException(Exception):
+    def __init__(self, name: str):
+        self.name = name
+
+    def __str__(self):
+        return repr("{} has not been implemented yet".format(self.name))
+
+

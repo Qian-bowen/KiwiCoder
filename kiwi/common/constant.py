@@ -11,9 +11,12 @@ class ConstWrapper(IntEnum):
 
     ENTITY_WRAPPER = 1000
     ENTITY_CONTAINER_WRAPPER = 1001
-    ENTITY_FLUID_WRAPPER = 1002
-    ENTITY_COLUMN_WRAPPER = 1003
-    ENTITY_PLATE_WRAPPER = 1004
+    ENTITY_COLUMN_WRAPPER = 1002
+    ENTITY_SLIDE_WRAPPER = 1003
+
+    ENTITY_FLUID_WRAPPER = 1100
+    ENTITY_PLATE_WRAPPER = 1101
+    ENTITY_TISSUE_WRAPPER = 1102
 
     QUANTITY_WRAPPER = 1800
     QUANTITY_VOL_WRAPPER = 1801
@@ -42,6 +45,14 @@ class ConstWrapper(IntEnum):
     @staticmethod
     def is_periphery_wrapper(wrapper_type: int) -> bool:
         return ConstWrapper.PERIPHERY_WRAPPER.value <= wrapper_type < ConstWrapper.LIMIT.value
+
+    @staticmethod
+    def is_container_wrapper(wrapper_type: int) -> bool:
+        return ConstWrapper.ENTITY_WRAPPER.value <= wrapper_type < ConstWrapper.ENTITY_FLUID_WRAPPER.value
+
+    @staticmethod
+    def is_fluid_wrapper(wrapper_type: int) -> bool:
+        return ConstWrapper.ENTITY_FLUID_WRAPPER.value <= wrapper_type < ConstWrapper.QUANTITY_WRAPPER.value
 
     @staticmethod
     def get_class_name(wrapper_type: int) -> str:
@@ -149,6 +160,7 @@ class UserMsg:
     STEP_START_TEMPLATE = "Step:{} begin. Repeat times:{}. Already execute {} times."
     STEP_END_TEMPLATE = "Step:{} finish."
     SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE = "Overload user-defined: {}"
+    REPORT_GENERATE_TEMPLATE = "Report {} has been generated."
 
 
 class Config:
@@ -173,6 +185,7 @@ class UntilType:
 
 
 class ContainerType:
+    FAKE_CONTAINER = -1
     STERILE_MICROFUGE_TUBE = 0
     CENTRIFUGE_TUBE_15ML = 1
     FLASK = 2

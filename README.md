@@ -99,6 +99,17 @@ kiwi>sys show {var name}
 kiwi>sys set {var name} {var value}
 ```
 
+#### gen
+
+You can generate report or process graph by following commands.
+
+```
+kiwi>gen report {file name without suffix}
+kiwi>gen process {file name without suffix}
+```
+
+
+
 
 
 ### Bio Operation

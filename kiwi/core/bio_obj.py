@@ -11,14 +11,15 @@ class BioObject(metaclass=ABCMeta):
     """
     class member end with _um means the function can not be mocked
     """
-    def __init__(self, mock=False, mock_obj=None):
+    def __init__(self, name=None, mock=False, mock_obj=None):
         self.bio_type = None
         self.id = None
         self.key = None
-        self.name = None
+        self.name = name
         self.mock = mock
         self.mock_obj = mock_obj
         self.status = False
+        self.content = None
 
     def set_id(self, obj_id: int) -> None:
         self.id = obj_id

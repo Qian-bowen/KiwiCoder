@@ -31,8 +31,8 @@ class Speed(Quantity):
 
 
 class Temperature(Quantity):
-    ON_ICE = 0.0
-    ON_BOIL = 100.0
+    ON_ICE = 0
+    ON_BOIL = 100
     ROOM = 28
 
     def __init__(self, temp: float):

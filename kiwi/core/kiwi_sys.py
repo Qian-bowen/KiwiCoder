@@ -26,9 +26,12 @@ class GenericEnv:
 
     def __init__(self):
         self.id_counter = 0
+        self.protocol = None
         self.wrappers = []
+        self.fluid_generic = []
         self.steps_generic = []
         self.periphery_generic = []
+        self.container_generic = []
         self.dependency_graph_generic = DAG()
         self.overload_core_obj = set()
 
@@ -80,6 +83,10 @@ class GenericEnv:
             self.steps_generic.append(target_class)
         elif ConstWrapper.is_periphery_wrapper(wrapper.get_wrapper_type()):
             self.periphery_generic.append(target_class)
+        elif ConstWrapper.is_container_wrapper(wrapper.get_wrapper_type()):
+            self.container_generic.append(target_class)
+        elif ConstWrapper.is_fluid_wrapper(wrapper.get_wrapper_type()):
+            self.fluid_generic.append(target_class)
 
 
 @singleton
@@ -116,7 +123,24 @@ class KiwiSys:
         task_thread.start()
 
     def report_gen_graph_topology(self, filename):
+        if filename == ".":
+            filename = "./report/process_graph.dot"
+        else:
+            filename = "./report/" + filename + ".dot"
         self.report_gen.gen_graph_topology_file(filename)
+        self._print_to_screen(UserMsg.REPORT_GENERATE_TEMPLATE.format(filename))
+
+    def report_gen_html(self, filename):
+        if filename == ".":
+            filename = "./report/formal.html"
+        else:
+            filename = "./report/" + filename + ".html"
+        seq_steps = self.step_controller.seq_steps()
+        fluids = GenericEnv().fluid_generic
+        periphery_list = GenericEnv().periphery_generic
+        containers = GenericEnv().container_generic
+        self.report_gen.gen_html_report_file(filename, seq_steps, fluids, periphery_list, containers)
+        self._print_to_screen(UserMsg.REPORT_GENERATE_TEMPLATE.format(filename))
 
     def set_sys_variable(self, var_name: str, var_value) -> str:
         self.sys_var_map[var_name + "_setter"](var_value)
@@ -184,7 +208,7 @@ class KiwiSys:
         self.step_controller.add_step_list(GenericEnv().steps_generic)
         self.step_controller.print_step_tree()
         self.step_controller.add_step_list_to_graph(GenericEnv().steps_generic)
-        self.watcher.add_dependency_graph(GenericEnv().dependency_graph_generic)
+        self.report_gen.add_dependency_graph(GenericEnv().dependency_graph_generic)
 
     def topology_view(self):
         pass

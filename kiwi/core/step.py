@@ -1,3 +1,4 @@
+from kiwi.core.bio_op import BioOp
 from kiwi.util import TreeNode, EventBus
 from kiwi.common import EventName, SysStatus, Msg, MsgEndpoint, MsgLevel, UserMsg
 from typing import Optional
@@ -11,11 +12,12 @@ class Step(TreeNode):
     Step is the minimum unit for scheduling.
     """
 
-    def __init__(self, step_num: str, wait_list: [str], children_parallel_list: [str], repeat_times: int):
+    def __init__(self, name: str, step_num: str, wait_list: [str], children_parallel_list: [str], repeat_times: int):
         """
             step_num: step hierarchy, e.g. 1.2.1
         """
         super().__init__(key=step_num)
+        self.name = name
         self.step_num = step_num
         self.wait_list = wait_list
         self.children_parallel_list = children_parallel_list

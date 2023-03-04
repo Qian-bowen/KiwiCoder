@@ -46,10 +46,13 @@ class Cmd:
                 self.output.set_can_print(True)
             elif cmd_segments[1] == "-c":
                 self.output.set_can_print(False)
-        elif cmd_segments[0] == "report":
+        elif cmd_segments[0] == "gen":
             if cmd_segments[1] == "process":
                 filename = cmd_segments[2]
                 self.callback_sys.report_gen_graph_topology(filename)
+            elif cmd_segments[1] == "report":
+                filename = cmd_segments[2]
+                self.callback_sys.report_gen_html(filename)
         elif cmd_segments[0] == "ctrl":
             if cmd_segments[1] == "-sp" and cmd_segments[3] == "-op":
                 """ send signal """

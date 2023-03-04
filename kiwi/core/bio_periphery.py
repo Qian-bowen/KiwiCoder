@@ -6,8 +6,8 @@ from .bio_obj import BioObject
 
 
 class Periphery(BioObject):
-    def __init__(self, mock=False, mock_obj=None):
-        super().__init__(mock=mock, mock_obj=mock_obj)
+    def __init__(self, name: str, mock=False, mock_obj=None):
+        super().__init__(name=name, mock=mock, mock_obj=mock_obj)
 
     @abstractmethod
     def start(self):

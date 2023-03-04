@@ -2,13 +2,15 @@ from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict, List, Callable
 
+from kiwi.common.constant import ContainerType
+
 from kiwi.util.graph import DAG
 
 from kiwi.core.bio_obj import BioObject
-from .bio_entity import Container
+from .bio_entity import Container, Fluid
 
 from .bio_periphery import Periphery, MeasureInstrumPeriphery
-from .bio_quantity import Volume, Temperature
+from .bio_quantity import Volume, Temperature, Time, Speed
 from kiwi.common import SysStatus, EventName, Msg, MsgEndpoint, MsgLevel, AutoLevel, SysSignal, with_defer, defer, \
     UserMsg
 from kiwi.util import EventBus
@@ -77,7 +79,6 @@ class BioOp(ABC):
             status = func()
         return SysStatus.SUCCESS
 
-    @abstractmethod
     @with_defer
     def _run(self) -> SysStatus:
         """ the main stage of run, execute automatically """
@@ -126,6 +127,52 @@ class BioOp(ABC):
         pass
 
 
+# ==================================== #
+#      1. Writing a new protocol       #
+# ==================================== #
+
+
+class StartProtocolOp(BioOp):
+    def __init__(self, protocol_name: str, step_name: str, op_index: int, dependency_graph: DAG):
+        super().__init__(step_name, op_index, dependency_graph)
+        self.protocol_name = protocol_name
+
+    def get_html_text(self) -> str:
+        return "<h1 style=\"font-size = 25px;\">{}</h1>".format(self.protocol_name)
+
+
+class EndProtocolOp(BioOp):
+    def __init__(self, step_name: str, op_index: int, dependency_graph: DAG):
+        super().__init__(step_name, op_index, dependency_graph)
+
+    def get_html_text(self) -> str:
+        return "</li></p></ol>"
+
+
+class CommentOp(BioOp):
+    def __init__(self, content: str, step_name: str, op_index: int, dependency_graph: DAG):
+        super().__init__(step_name, op_index, dependency_graph)
+        self.content = content
+
+    def get_html_text(self) -> str:
+        return "<font color = \"#800517\"><i>{}</i></font><br>".format(self.content)
+
+
+class DoNothingOp(BioOp):
+    """ Do nothing and wait until receive signal """
+
+    def __init__(self, step_name: str, op_index: int, dependency_graph: DAG):
+        super().__init__(step_name, op_index, dependency_graph, auto_level=AutoLevel.HUMAN)
+
+    def get_html_text(self) -> str:
+        return ""
+
+
+# ==================================== #
+#      3. Measuring out materials      #
+# ==================================== #
+
+
 class MeasureFluidOp(BioOp):
     def __init__(self, step_name: str, op_index: int, vol: Volume, measure_instrum: MeasureInstrumPeriphery,
                  drivers: List[Periphery], auto_level=AutoLevel.FULL):
@@ -147,9 +194,55 @@ class MeasureFluidOp(BioOp):
             driver.shutdown()
         return SysStatus.SUCCESS
 
+    @abstractmethod
     def get_html_text(self) -> str:
         """ output the text describe the operation """
         return ""
+
+
+# ==================================== #
+#        4. Combination/mixing         #
+# ==================================== #
+
+def _mix_graph_construct(container: Container, dependency_graph: DAG):
+    mix_fluid = Fluid("mix")
+    dependency_graph.add_node(mix_fluid)
+    dependency_graph.add_node(container.content)
+    dependency_graph.add_edge(container.content, mix_fluid)
+    container.content = Container(container_type=ContainerType.FAKE_CONTAINER)
+    container.content.name = "container with contents mixed"
+    dependency_graph.add_node(container.content)
+    dependency_graph.add_edge(mix_fluid, container.content)
+
+
+class VortexOp(BioOp):
+    def __init__(self, container: Container, step_name: str, op_index: int, dependency_graph: DAG,
+                 auto_level=AutoLevel.FULL):
+        super().__init__(step_name, op_index, dependency_graph, auto_level)
+        ''' dependency config '''
+        _mix_graph_construct(container, self.dependency_graph)
+
+    def _run(self) -> SysStatus:
+        print("run vortex op, hello world")
+        return SysStatus.SUCCESS
+
+    def get_html_text(self) -> str:
+        """ output the text describe the operation """
+        return ""
+
+
+class DissolveOp(BioOp):
+    def __init__(self, container: Container, step_name: str, op_index: int, dependency_graph: DAG):
+        super().__init__(step_name, op_index, dependency_graph)
+        _mix_graph_construct(container, self.dependency_graph)
+
+    def _run(self) -> SysStatus:
+        print("run dissolve op, hello world")
+        return SysStatus.SUCCESS
+
+    def get_html_text(self) -> str:
+        """ output the text describe the operation """
+        return "Dissolve the pellet in the solution.<br>"
 
 
 # ==================================== #
@@ -161,12 +254,43 @@ class StoreOp(BioOp):
     def __init__(self, container: Container, temp: Temperature, step_name: str, op_index: int, dependency_graph: DAG,
                  auto_level=AutoLevel.FULL):
         super().__init__(step_name, op_index, dependency_graph, auto_level)
+        ''' dependency config '''
         self.dependency_graph.add_node(target_node=container)
         self.dependency_graph.add_node(target_node=self)
         self.dependency_graph.add_edge(container, self)
 
     def _run(self) -> SysStatus:
         print("run store op, hello world")
+        return SysStatus.SUCCESS
+
+    def get_html_text(self) -> str:
+        """ output the text describe the operation """
+        return ""
+
+
+# ==================================== #
+#           7. Centrifugation          #
+# ==================================== #
+
+class CentrifugePelletOp(BioOp):
+    """ Performs centrifugation of given container at the specified temperature, speed and time and yields a pellet.
+    The supernatant is discarded. """
+
+    def __init__(self, container: Container, speed: Speed, temp: Temperature, time: Time, step_name: str, op_index: int,
+                 dependency_graph: DAG, auto_level=AutoLevel.FULL):
+        super().__init__(step_name, op_index, dependency_graph, auto_level)
+        ''' dependency config '''
+        fluid = Fluid("centrifuge pellet")
+        self.dependency_graph.add_node(fluid)
+        self.dependency_graph.add_node(container.content)
+        self.dependency_graph.add_edge(container.content, fluid)
+        container.content = Container(container_type=ContainerType.FAKE_CONTAINER)
+        container.content.name = "container with pellet"
+        self.dependency_graph.add_node(container.content)
+        self.dependency_graph.add_edge(fluid, container.content)
+
+    def _run(self) -> SysStatus:
+        print("run centrifuge pellet op, hello world")
         return SysStatus.SUCCESS
 
     def get_html_text(self) -> str:

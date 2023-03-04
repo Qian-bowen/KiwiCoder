@@ -8,10 +8,12 @@ init_file_content = \
 
 protocol_file_content = \
     "# define experiment protocol in this file\n" \
-    "from kiwi import Step\n\n" \
+    "from kiwi import Step, start_protocol, end_protocol\n\n" \
     "def kiwi_protocol():\n" \
     "\t\"\"\" Define experiment protocol. \"\"\"\n" \
-    "\tStep(\"example step 1\", \"sn:1\")\n\n\n"
+    "\tstart_protocol(\"You should rename but do not remove it.\")\n" \
+    "\tStep(\"example step 1\", \"sn:1\")\n" \
+    "\tend_protocol()\n\n\n"
 
 override_file_content = \
     "# override core class in this file\n\n"
@@ -61,6 +63,7 @@ class Generator:
         f = Path(path + "/user/override.py").open("w+")
         self._generate_override_file(f)
         f.close()
+        Path(path + '/report').mkdir()
 
 
 def main():
