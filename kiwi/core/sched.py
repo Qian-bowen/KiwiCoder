@@ -26,13 +26,12 @@ class StepController:
         self.step_tree = TreeAryN(sort_func=sort_default)
         self.step_graph = DAG()
         self._schedule_mode = schedule_mode
-        root_step = Step(step_num="0", wait_list=[], children_parallel_list=[])
+        root_step = Step(name="root_step", step_num="0", wait_list=[], children_parallel_list=[], repeat_times=1)
         self.step_tree.add_node(root_step)
         self.step_graph.add_node(root_step)
 
     def add_step_list(self, steps: List[Step]):
         for step in steps:
-            step.reset()
             parent_step_key = Step.parent_step(step.step_num)
             self.step_tree.add_node(step, parent_step_key)
 
@@ -70,6 +69,9 @@ class StepController:
         elif self._schedule_mode == ScheduleMode.GRAPH:
             return Strategy.next_all(schedule_list)
         return []
+
+    def seq_steps(self) -> [Step]:
+        return self.step_tree.preorder()
 
     def print_step_tree(self):
         print("\n===================step tree===================")

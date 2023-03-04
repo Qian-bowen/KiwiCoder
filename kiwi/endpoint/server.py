@@ -1,6 +1,3 @@
-import asyncio
-import logging
-
 import grpc
 import kiwi_pb2
 import kiwi_pb2_grpc

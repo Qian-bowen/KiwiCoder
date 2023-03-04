@@ -1,1 +1,1 @@
-from .server import KiwiServer
+from kiwi.endpoint.server import KiwiServer

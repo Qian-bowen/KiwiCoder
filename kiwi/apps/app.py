@@ -1,5 +1,6 @@
-from kiwi.cli import Cmd
 from threading import Thread
+
+from kiwi.cli.command import Cmd
 from kiwi.core.kiwi_sys import GenericEnv, KiwiSys
 from kiwi.common import ScheduleMode
 

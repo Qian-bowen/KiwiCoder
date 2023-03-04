@@ -1,5 +1,4 @@
 from abc import ABCMeta
-from functools import wraps
 
 from enum import Enum
 
@@ -12,12 +11,19 @@ class BioObject(metaclass=ABCMeta):
     """
     class member end with _um means the function can not be mocked
     """
-    def __init__(self, mock=False, mock_obj=None):
+    def __init__(self, name=None, mock=False, mock_obj=None):
         self.bio_type = None
         self.id = None
+        self.key = None
+        self.name = name
         self.mock = mock
         self.mock_obj = mock_obj
         self.status = False
+        self.content = None
+
+    def set_id(self, obj_id: int) -> None:
+        self.id = obj_id
+        self.key = str(obj_id)
 
     def get_id_um(self) -> None:
         return self.id
@@ -30,3 +36,4 @@ class BioObject(metaclass=ABCMeta):
 
     def set_mock_um(self, is_mock: bool) -> None:
         self.mock = is_mock
+

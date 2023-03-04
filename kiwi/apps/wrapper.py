@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from kiwi.common import ConstWrapper, ParseParamException
-from kiwi.core import GenericEnv
+from kiwi.core.kiwi_sys import GenericEnv
 
 
 class Wrapper:
@@ -10,7 +10,7 @@ class Wrapper:
         self.wrapper_type = wrapper_type
         self.args = args
         self.kwargs = kwargs
-        GenericEnv().append_wrapper(*args, **kwargs, wrapper=self)
+        GenericEnv().append_wrapper(wrapper=self)
 
     def get_wrapper_type(self):
         return self.wrapper_type
@@ -28,11 +28,11 @@ class Wrapper:
 # ==================================== #
 
 class Step(Wrapper):
-    def __init__(self, comment: str, step_spec="", repeat_times=1):
+    def __init__(self, name: str, step_spec="", repeat_times=1):
         step_num, wait_list, parallel_list = Step._parse_step_spec(step_spec)
-        super().__init__(step_num=step_num, wait_list=wait_list, children_parallel_list=parallel_list,
-                         wrapper_type=ConstWrapper.STEP_WRAPPER)
-        self.comment = comment
+        super().__init__(name=name, step_num=step_num, wait_list=wait_list, children_parallel_list=parallel_list,
+                         repeat_times=repeat_times, wrapper_type=ConstWrapper.STEP_WRAPPER)
+        self.name = name
         self.step_spec = step_spec
         self.repeat_times = repeat_times
 
@@ -141,21 +141,3 @@ class PhidgetRelay(ControlPeriphery):
     def package_name(self) -> str:
         return super().package_name()
 
-
-# ==================================== #
-#        Protocol Utils                #
-# ==================================== #
-
-
-class Container(Wrapper):
-    def __init__(self, comment=None):
-        super().__init__(wrapper_type=ConstWrapper.ENTITY_CONTAINER_WRAPPER)
-
-
-class Fluid(Wrapper):
-    def __init__(self):
-        super().__init__(wrapper_type=ConstWrapper.ENTITY_FLUID_WRAPPER)
-
-# class Vol(Wrapper):
-#     def __init__(self):
-#         super().__init__(wrapper_type=ConstWrapper.QUANTITY_VOL_WRAPPER)

@@ -1,6 +1,4 @@
-from threading import Thread
-
-from kiwi.apps import KiwiCoder, Step, Container, measure_fluid
+from kiwi import KiwiCoder, Step, Container, measure_fluid
 from kiwi.core.bio_quantity import Volume
 from kiwi.plugin.hardware.instrum import FlowMeter
 
