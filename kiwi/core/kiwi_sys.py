@@ -3,6 +3,9 @@ import inspect
 import re
 import sys
 
+from kiwi.core.step import Step
+from kiwi.endpoint.server import KiwiServer
+
 from kiwi.core.report import ReportGen
 from kiwi.core.watch import Watcher
 from kiwi.util.graph import DAG
@@ -29,7 +32,9 @@ class GenericEnv:
         self.protocol = None
         self.wrappers = []
         self.fluid_generic = []
+        self.root_step = Step(name="root_step", step_num="0", wait_list=[], children_parallel_list=[], repeat_times=1)
         self.steps_generic = []
+        self.steps_generic.append(self.root_step)
         self.periphery_generic = []
         self.container_generic = []
         self.dependency_graph_generic = DAG()
@@ -76,7 +81,8 @@ class GenericEnv:
         ''' convert wrapper to core object '''
         target_class = target_class_template(*args, **kwargs)
         if issubclass(target_class, BioObject):
-            target_class.set_id(self.id_counter)
+            target_id = self.id_counter
+            target_class.set_id(obj_id=target_id)
             self.id_counter += 1
 
         if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
@@ -94,8 +100,8 @@ class KiwiSys:
     def __init__(self, thread_pool_size: int, schedule_mode=ScheduleMode.SEQ):
         self.obj_map = Dict[int, BioObject]
         self.obj_relation = Dict[BioObject, BioObject]
-        self.step_controller = StepController(schedule_mode)
-        self.watcher = Watcher()
+        self.step_controller = StepController(schedule_mode, GenericEnv().root_step)
+        self.server = KiwiServer()
         self.report_gen = ReportGen()
         self.thread_pool = ThreadPoolExecutor(max_workers=thread_pool_size)
         self.sys_var_map = Dict[str, Callable]
@@ -204,8 +210,8 @@ class KiwiSys:
         for wrapper in GenericEnv().wrappers:
             if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
                 pass
-        self.step_controller = StepController(schedule_mode=ScheduleMode.GRAPH)
-        self.step_controller.add_step_list(GenericEnv().steps_generic)
+        self.step_controller = StepController(schedule_mode=ScheduleMode.GRAPH, root_step=GenericEnv().root_step)
+        self.step_controller.add_step_list(GenericEnv().steps_generic[1:])
         self.step_controller.print_step_tree()
         self.step_controller.add_step_list_to_graph(GenericEnv().steps_generic)
         self.report_gen.add_dependency_graph(GenericEnv().dependency_graph_generic)

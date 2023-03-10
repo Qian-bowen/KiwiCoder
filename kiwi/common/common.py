@@ -104,16 +104,23 @@ class MultiMethod(object):
         self.type_map = {}
 
     def __call__(self, *args):
-        types = tuple(arg.__class__ for arg in args)
-        function = self.type_map.get(types)
+        types = tuple(type(arg) for arg in args)
+        print("types when call:{}".format(types))
+        function = self.type_map.get(types, None)
         if function is None:
             raise TypeError("no match")
         return function(*args)
 
-    def register(self, types, function):
-        if types in self.type_map:
-            raise TypeError("duplicate register")
-        self.type_map[types] = function
+    def register(self, method):
+        sig = inspect.signature(method)
+        types = []
+        for name, parm in sig.parameters.items():
+            if parm.default is not inspect.Parameter.empty:
+                self.type_map[tuple(types)] = method
+                print("types when register:{}".format(types))
+            types.append(parm.annotation)
+        self.type_map[tuple(types)] = method
+        print("types when register:{}".format(types))
 
 
 def multimethod(*types):
@@ -124,7 +131,7 @@ def multimethod(*types):
         mm = registry.get(name)
         if mm is None:
             mm = registry[name] = MultiMethod(name)
-        mm.register(types, function)
+        mm.register(function)
         mm.__lastreg__ = function
         return mm
 

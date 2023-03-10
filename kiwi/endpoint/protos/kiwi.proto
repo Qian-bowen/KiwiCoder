@@ -3,16 +3,37 @@ syntax = "proto3";
 package endpoint;
 
 service KiwiService{
-  rpc GetMsg (GetMsgRequest) returns (stream GetMsgResponse) {}
+  rpc WatchBioObj (WatchBioRequest) returns (stream BioStatus) {}
+  rpc WatchProtocol (WatchProtocolRequest) returns (stream ProtocolStatus) {}
+  rpc WatchNotification (WatchNotificationRequest) returns (stream NotificationResponse) {}
 }
 
-message GetMsgRequest{
-  int64 msg_channel = 1;
+message WatchBioRequest{
 }
 
-message GetMsgResponse{
-  int64 msg_level = 1;
-  int64 msg_type = 2;
-  int64 timestamp = 3;
-  string msg = 4;
+message BioMeta {
+  int64 bio_id = 1;
+  int64 bio_type = 2;
+  string spec = 3;
+}
+
+message BioStatus{
+  int64 status = 1;
+  repeated BioMeta bio_meta_list = 2;
+}
+
+message WatchProtocolRequest{
+}
+
+message ProtocolStatus{
+  int64 status = 1;
+}
+
+message WatchNotificationRequest{
+}
+
+message NotificationResponse{
+  int64 status = 1;
+  int64 msg_level = 2;
+  string msg = 3;
 }

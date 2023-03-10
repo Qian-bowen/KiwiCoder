@@ -14,6 +14,9 @@ class Quantity(BioObject):
         """ return value in common unit in bio experiments """
         pass
 
+    def text(self) -> str:
+        return "{}{}".format(self.value, self.unit_denote)
+
 
 class Volume(Quantity):
     def __init__(self, value: float, unit_denote: str):
@@ -27,7 +30,11 @@ class Volume(Quantity):
 
 
 class Speed(Quantity):
-    pass
+    def __init__(self, value: float, unit_denote: str):
+        super().__init__(value, unit_denote)
+
+    def std_value(self) -> float:
+        return self.value
 
 
 class Temperature(Quantity):
@@ -44,4 +51,8 @@ class Temperature(Quantity):
 
 
 class Time(Quantity):
-    pass
+    def __init__(self, value: float, unit_denote: str):
+        super().__init__(value, unit_denote)
+
+    def std_value(self) -> float:
+        return self.value

@@ -8,6 +8,14 @@ class ConstWrapper(IntEnum):
     OP_WRAPPER = 10
     OP_MEASURE_FLUID_WRAPPER = 11
     OP_STORE_WRAPPER = 12
+    OP_START_PROTOCOL_WRAPPER = 13
+    OP_END_PROTOCOL_WRAPPER = 14
+    OP_DO_NOTHING_WRAPPER = 15
+    OP_COMMENT_WRAPPER = 16
+    OP_VORTEX_WRAPPER = 17
+    OP_TAP_WRAPPER = 18
+    OP_DISSOLVE_WRAPPER = 19
+    OP_CENTRIFUGE_PELLET_WRAPPER = 20
 
     ENTITY_WRAPPER = 1000
     ENTITY_CONTAINER_WRAPPER = 1001
@@ -123,6 +131,7 @@ class MsgEndpoint:
     WATCH = "watch"
     USER_TERMINAL = "user_terminal"
     SYS = "sys"
+    BIO_OBJ = "bio_obj"
 
 
 class EventName:
@@ -131,9 +140,10 @@ class EventName:
     STEP_EVENT = "event:step"
     FATAL_ALARM_EVENT = "event:fatal_alarm"
     SCREEN_PRINT_EVENT = "event:screen:print"
+    WATCH_EVENT = "event:watch"
 
 
-class AutoLevel:
+class AutoLevel(IntEnum):
     HUMAN = 0
     SEMI = 1
     FULL = 2
@@ -157,6 +167,8 @@ class UserMsg:
     OP_STAGE_START_TEMPLATE = "Step:{} Operation:{} Stage:{} begin."
     OP_STAGE_END_TEMPLATE = "Step:{} Operation:{} Stage:{} finish."
     OP_SIGNAL_TEMPLATE = "Step:{} Operation:{} receive signal :{}."
+    OP_PROTOCOL_START_TEMPLATE = "Protocol:{} start"
+    OP_PROTOCOL_END_TEMPLATE = "Protocol end"
     STEP_START_TEMPLATE = "Step:{} begin. Repeat times:{}. Already execute {} times."
     STEP_END_TEMPLATE = "Step:{} finish."
     SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE = "Overload user-defined: {}"
