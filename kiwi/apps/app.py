@@ -2,13 +2,13 @@ import asyncio
 from threading import Thread
 
 from kiwi.cli.command import Cmd
-from kiwi.core.kiwi_sys import GenericEnv, KiwiSys
+from kiwi.core.kiwi_sys import ProtocolGeneric, KiwiSys
 from kiwi.common import ScheduleMode
 
 
 class KiwiCoder:
     def __init__(self):
-        self.environment = GenericEnv()
+        self.environment = ProtocolGeneric()
         self.kiwi_sys = KiwiSys(thread_pool_size=10, schedule_mode=ScheduleMode.GRAPH)
         self.cmd = Cmd(self.kiwi_sys)
 

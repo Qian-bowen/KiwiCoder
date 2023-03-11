@@ -24,6 +24,7 @@ kiwi-gen {your path}
 The project hierarchy is shown as below.
 ```
 ├── keee-weee
+│    ├── report
 │    ├── user
 │       ├── __init__.py
 │    	├── override.py

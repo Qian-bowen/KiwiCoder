@@ -14,12 +14,13 @@ from .bio_entity import Container, Fluid
 from .bio_periphery import Periphery, MeasureInstrumPeriphery
 from .bio_quantity import Volume, Temperature, Time, Speed
 from kiwi.common import SysStatus, EventName, Msg, MsgEndpoint, MsgLevel, AutoLevel, SysSignal, with_defer, defer, \
-    UserMsg
+    UserMsg, watch_change, CustomJSONEncoder
 from kiwi.util import EventBus
 
 bus = EventBus()
 
 
+@watch_change(watch_list=["status"])
 class BioOp(ABC):
     def __init__(
             self,
@@ -44,7 +45,7 @@ class BioOp(ABC):
         self.dependency_graph = dependency_graph
         self.periphery_dict = Dict[int, Periphery]
         self.bio_obj_dict = Dict[int, BioObject]
-        self._status = SysStatus.INIT
+        self.status = SysStatus.INIT
         self.run_funcs = List[Callable]
 
         bus.add_event(func=self._signal_handler,
@@ -60,15 +61,6 @@ class BioOp(ABC):
     def __str__(self):
         return json.dumps(self.__dict__)
 
-    @property
-    def status(self):
-        return self._status
-
-    @status.setter
-    def status(self, new_status):
-        self._status = new_status
-        bus.emit(event=EventName.WATCH_EVENT, src=MsgEndpoint.OP, raw_mag=self.__str__())
-
     def delay_init(self, step_name: str, op_index: int, auto_level=AutoLevel.FULL):
         self.step_name = step_name
         self.op_index = op_index
@@ -83,20 +75,19 @@ class BioOp(ABC):
         while self.status == SysStatus.PENDING:
             ''' sleep to yield cpu to cmd thread '''
             sleep(0.1)
-
+        op_status = SysStatus.SUCCESS
         for func in self.run_funcs:
             BioOp._print_to_screen(msg=UserMsg.OP_STAGE_START_TEMPLATE
                                    .format(self.step_name, self.op_index, func.__name__), level=MsgLevel.INFO)
-            status = func()
-        return SysStatus.SUCCESS
+            op_status = func()
+        self.status = op_status
+        return op_status
 
     @with_defer
     def _run(self) -> SysStatus:
         """ the main stage of run, execute automatically """
-        # defer(lambda: BioOp._print_to_screen(msg=UserMsg.OP_STAGE_END_TEMPLATE
-        #                                      .format(self.step_name, self.op_index, "_run"),
-        #                                      level=MsgLevel.INFO))
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def _human_run(self) -> SysStatus:
         """ notify human to operate """
@@ -125,6 +116,13 @@ class BioOp(ABC):
                  msg=Msg(msg=msg, source=MsgEndpoint.OP, destinations=[MsgEndpoint.USER_TERMINAL],
                          code=SysStatus.SUCCESS, level=level))
 
+    def _watch(self, name, old_value, value) -> None:
+        """ _watch will be called when attributes in @watch_change changes """
+        dump_dict = {"id": self.id, "name": self.name, "step_name": self.step_name, "op_index": self.op_index,
+                     "key": self.key, "auto_level": self.auto_level, "status": self.status}
+        raw_msg = json.dumps(dump_dict, cls=CustomJSONEncoder)
+        bus.emit(event=EventName.WATCH_EVENT, src=MsgEndpoint.OP, raw_msg=raw_msg)
+
     @staticmethod
     def get_op_identifier(step_name: str, op_index: int) -> str:
         return step_name + " " + str(op_index)
@@ -148,7 +146,8 @@ class StartProtocolOp(BioOp):
     def _run(self) -> SysStatus:
         BioOp._print_to_screen(msg=UserMsg.OP_PROTOCOL_START_TEMPLATE.format(self.protocol_name),
                                level=MsgLevel.IMPORTANT)
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         return "<h1 style=\"font-size = 25px;\">{}</h1>".format(self.protocol_name)
@@ -160,7 +159,8 @@ class EndProtocolOp(BioOp):
 
     def _run(self) -> SysStatus:
         BioOp._print_to_screen(msg=UserMsg.OP_PROTOCOL_END_TEMPLATE, level=MsgLevel.IMPORTANT)
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         return "</li></p></ol>"
@@ -214,7 +214,8 @@ class MeasureFluidOp(BioOp):
                                              .format(self.step_name, self.op_index, "_run"),
                                              level=MsgLevel.INFO))
         print("run measure fluid op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
@@ -250,7 +251,8 @@ class VortexOp(BioOp):
 
     def _run(self) -> SysStatus:
         print("run vortex op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
@@ -266,7 +268,8 @@ class TapOp(BioOp):
 
     def _run(self) -> SysStatus:
         print("run tap op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
@@ -281,7 +284,8 @@ class DissolveOp(BioOp):
 
     def _run(self) -> SysStatus:
         print("run dissolve op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
@@ -304,7 +308,8 @@ class StoreOp(BioOp):
 
     def _run(self) -> SysStatus:
         print("run store op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
@@ -338,7 +343,8 @@ class CentrifugePelletOp(BioOp):
 
     def _run(self) -> SysStatus:
         print("run centrifuge pellet op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """

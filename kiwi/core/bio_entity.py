@@ -4,7 +4,7 @@ from .bio_quantity import Temperature, Volume
 
 
 class Container(BioObject):
-    def __init__(self, container_type: ContainerType, name=None, fluid=None):
+    def __init__(self, container_type: ContainerType, name="", fluid=None):
         super().__init__(name=name)
 
 
@@ -18,7 +18,7 @@ class Slide(Container):
 
 class Fluid(BioObject):
     def __init__(self, name: str, state=None, temp=None, volume=None):
-        super().__init__()
+        super().__init__(name=name)
         self.temp = temp
         self.volume = volume
 

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from kiwi.common import ConstWrapper, ParseParamException
-from kiwi.core.kiwi_sys import GenericEnv
+from kiwi.core.kiwi_sys import ProtocolGeneric
 
 
 class Wrapper:
@@ -10,7 +10,7 @@ class Wrapper:
         self.wrapper_type = wrapper_type
         self.args = args
         self.kwargs = kwargs
-        GenericEnv().append_wrapper(wrapper=self)
+        ProtocolGeneric().append_wrapper(wrapper=self)
 
     def get_wrapper_type(self):
         return self.wrapper_type
@@ -29,8 +29,8 @@ class Wrapper:
 
 class Step(Wrapper):
     def __init__(self, name: str, step_spec="", repeat_times=1):
-        step_num, wait_list, parallel_list = Step._parse_step_spec(step_spec)
-        super().__init__(name=name, step_num=step_num, wait_list=wait_list, children_parallel_list=parallel_list,
+        step_name, wait_list, parallel_list = Step._parse_step_spec(step_spec)
+        super().__init__(name=name, step_name=step_name, wait_list=wait_list, children_parallel_list=parallel_list,
                          repeat_times=repeat_times, wrapper_type=ConstWrapper.STEP_WRAPPER)
         self.name = name
         self.step_spec = step_spec

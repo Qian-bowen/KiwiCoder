@@ -24,15 +24,15 @@ bus = EventBus()
 
 
 @singleton
-class GenericEnv:
-    """GenericEnv class handles user defined wrapper, and makes a basic environment"""
+class ProtocolGeneric:
+    """GenericEnv class handles user defined wrapper, and makes a basic environment for protocol """
 
     def __init__(self):
         self.id_counter = 0
-        self.protocol = None
+        self.protocol_name = None
         self.wrappers = []
         self.fluid_generic = []
-        self.root_step = Step(name="root_step", step_num="0", wait_list=[], children_parallel_list=[], repeat_times=1)
+        self.root_step = Step(name="root_step", step_name="0", wait_list=[], children_parallel_list=[], repeat_times=1)
         self.steps_generic = []
         self.steps_generic.append(self.root_step)
         self.periphery_generic = []
@@ -66,7 +66,7 @@ class GenericEnv:
             target_class_template = import_dynamic(Config.USER_DEFINED_PACKAGE, template_class_name)
         else:
             target_class_template = import_dynamic(Config.CORE_OP_PACKAGE, template_class_name)
-        op = target_class_template(step_name=current_step.step_num, op_index=len(current_step.operations),
+        op = target_class_template(step_name=current_step.step_name, op_index=len(current_step.operations),
                                    dependency_graph=self.dependency_graph_generic, *args, **kwargs)
         op.id = self.id_counter
         self.id_counter += 1
@@ -80,10 +80,10 @@ class GenericEnv:
             target_class_template = import_dynamic(wrapper.package_name(), wrapper.class_name())
         ''' convert wrapper to core object '''
         target_class = target_class_template(*args, **kwargs)
-        if issubclass(target_class, BioObject):
-            target_id = self.id_counter
-            target_class.set_id(obj_id=target_id)
-            self.id_counter += 1
+        # if issubclass(target_class, BioObject):
+        #     target_id = self.id_counter
+        #     target_class.set_id(obj_id=target_id)
+        #     self.id_counter += 1
 
         if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
             self.steps_generic.append(target_class)
@@ -97,10 +97,10 @@ class GenericEnv:
 
 @singleton
 class KiwiSys:
-    def __init__(self, thread_pool_size: int, schedule_mode=ScheduleMode.SEQ):
+    def __init__(self, thread_pool_size: int, schedule_mode=ScheduleMode.GRAPH):
         self.obj_map = Dict[int, BioObject]
         self.obj_relation = Dict[BioObject, BioObject]
-        self.step_controller = StepController(schedule_mode, GenericEnv().root_step)
+        self.step_controller = StepController(schedule_mode, ProtocolGeneric().root_step)
         self.server = KiwiServer()
         self.report_gen = ReportGen()
         self.thread_pool = ThreadPoolExecutor(max_workers=thread_pool_size)
@@ -115,7 +115,7 @@ class KiwiSys:
 
     def task_scanner(self):
         self._scan_user_defined_package()
-        GenericEnv().build_wrapper()
+        ProtocolGeneric().build_wrapper()
         self._scan_env()
 
     def load_module(self):
@@ -142,9 +142,9 @@ class KiwiSys:
         else:
             filename = "./report/" + filename + ".html"
         seq_steps = self.step_controller.seq_steps()
-        fluids = GenericEnv().fluid_generic
-        periphery_list = GenericEnv().periphery_generic
-        containers = GenericEnv().container_generic
+        fluids = ProtocolGeneric().fluid_generic
+        periphery_list = ProtocolGeneric().periphery_generic
+        containers = ProtocolGeneric().container_generic
         self.report_gen.gen_html_report_file(filename, seq_steps, fluids, periphery_list, containers)
         self._print_to_screen(UserMsg.REPORT_GENERATE_TEMPLATE.format(filename))
 
@@ -198,7 +198,7 @@ class KiwiSys:
         for name, obj in inspect.getmembers(mod):
             if (inspect.isclass(obj) or inspect.isfunction(obj)) \
                     and re.match(Config.USER_DEFINED_PACKAGE + '.*', obj.__module__) is not None:
-                GenericEnv().add_overload_obj(name)
+                ProtocolGeneric().add_overload_obj(name)
                 overload_msg += name + ", "
         self._print_to_screen(UserMsg.SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE.format(overload_msg))
 
@@ -207,14 +207,14 @@ class KiwiSys:
         pass
 
     def _scan_env(self):
-        for wrapper in GenericEnv().wrappers:
+        for wrapper in ProtocolGeneric().wrappers:
             if wrapper.get_wrapper_type() == ConstWrapper.STEP_WRAPPER:
                 pass
-        self.step_controller = StepController(schedule_mode=ScheduleMode.GRAPH, root_step=GenericEnv().root_step)
-        self.step_controller.add_step_list(GenericEnv().steps_generic[1:])
+        self.step_controller = StepController(schedule_mode=ScheduleMode.GRAPH, root_step=ProtocolGeneric().root_step)
+        self.step_controller.add_step_list(ProtocolGeneric().steps_generic[1:])
         self.step_controller.print_step_tree()
-        self.step_controller.add_step_list_to_graph(GenericEnv().steps_generic)
-        self.report_gen.add_dependency_graph(GenericEnv().dependency_graph_generic)
+        self.step_controller.add_step_list_to_graph(ProtocolGeneric().steps_generic[1:])
+        self.report_gen.add_dependency_graph(ProtocolGeneric().dependency_graph_generic)
 
     def topology_view(self):
         pass

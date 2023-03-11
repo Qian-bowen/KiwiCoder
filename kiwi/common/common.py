@@ -6,6 +6,8 @@ from json import JSONEncoder
 from types import MappingProxyType
 from typing import Callable, Any
 
+from kiwi.util.graph import DAG
+
 from kiwi.common import SysStatus
 from kiwi.common.exception import MethodNotExistException
 
@@ -177,8 +179,11 @@ def watch_change(watch_list: [str]):
 # ==================================== #
 #           Encoder/Decoder            #
 # ==================================== #
+not_serializable = "$$"
+
 
 class CustomJSONEncoder(JSONEncoder):
+
     def default(self, o: Any) -> Any:
         print(type(o))
         if isinstance(o, uuid.UUID):
