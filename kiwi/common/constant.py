@@ -177,6 +177,7 @@ class UserMsg:
 
 class Config:
     OUTPUT_MSG_BUFFER_SIZE = 100
+    TERMINAL_VISIBLE_LEVEL = MsgLevel.GOSSIP
     USER_DEFINED_PACKAGE = "user"
     CORE_OP_PACKAGE = "kiwi.core.bio_op"
 

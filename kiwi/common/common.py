@@ -1,8 +1,18 @@
 import inspect
 import sys
+import uuid
 from functools import wraps
-from typing import Callable
+from json import JSONEncoder
+from types import MappingProxyType
+from typing import Callable, Any
 
+from kiwi.common import SysStatus
+from kiwi.common.exception import MethodNotExistException
+
+
+# ==================================== #
+#          Python decorator            #
+# ==================================== #
 
 def defer(x):
     for f in inspect.stack():
@@ -125,6 +135,7 @@ class MultiMethod(object):
 
 def multimethod(*types):
     """ support overload for python function """
+
     def register(function):
         function = getattr(function, "__lastreg__", function)
         name = function.__name__
@@ -136,3 +147,45 @@ def multimethod(*types):
         return mm
 
     return register
+
+
+def watch_change(watch_list: [str]):
+    """ monitor the class attributes, and call _watch method in class when change """
+    watch_attr_set = set(attr for attr in watch_list)
+
+    def __decorator__(cls):
+
+        _sentinel = object()
+        cls_setattr = getattr(cls, '__setattr__', None)
+        cls_watch = getattr(cls, '_watch', None)
+        if cls_watch is None:
+            raise MethodNotExistException("_watch")
+
+        def __setattr__(self, name, value):
+            if name in watch_attr_set:
+                old_value = getattr(self, name, _sentinel)
+                if old_value is not _sentinel and old_value != value:
+                    cls_watch(self, name, old_value, value)
+            cls_setattr(self, name, value)
+
+        cls.__setattr__ = __setattr__
+        return cls
+
+    return __decorator__
+
+
+# ==================================== #
+#           Encoder/Decoder            #
+# ==================================== #
+
+class CustomJSONEncoder(JSONEncoder):
+    def default(self, o: Any) -> Any:
+        print(type(o))
+        if isinstance(o, uuid.UUID):
+            return str(o)
+        if isinstance(o, SysStatus):
+            return int(o)
+        if isinstance(o, MappingProxyType):
+            return o.copy()
+        else:
+            return JSONEncoder.default(self, o)
