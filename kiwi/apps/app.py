@@ -1,4 +1,3 @@
-import asyncio
 from threading import Thread
 
 from kiwi.cli.command import Cmd

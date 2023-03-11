@@ -141,4 +141,6 @@ class Output:
         ''' color msg'''
         if msg.level == MsgLevel.IMPORTANT:
             ret = colored(ret, 'red', 'on_cyan')
+        elif msg.level == MsgLevel.WARN:
+            ret = colored(ret, 'red', 'on_yellow')
         return ret

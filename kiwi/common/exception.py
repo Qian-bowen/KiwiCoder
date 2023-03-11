@@ -54,3 +54,10 @@ class MethodNotExistException(Exception):
     def __str__(self):
         return repr("Method {} does not exist".format(self.name))
 
+
+class AttributeNotExistException(Exception):
+    def __init__(self, name: str):
+        self.name = name
+
+    def __str__(self):
+        return repr("Attribute {} does not exist".format(self.name))

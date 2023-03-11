@@ -1,6 +1,8 @@
+import json
+import math
 from abc import abstractmethod
 
-from .bio_obj import BioObject
+from kiwi.core.bio_obj import BioObject
 
 
 class Quantity(BioObject):
@@ -17,6 +19,29 @@ class Quantity(BioObject):
     def text(self) -> str:
         return "{}{}".format(self.value, self.unit_denote)
 
+    def __eq__(self, other):
+        is_equal = math.isclose(self.std_value(), other.std_value(), rel_tol=1e-5)
+        return is_equal
+
+    def __ne__(self, other):
+        is_equal = math.isclose(self.std_value(), other.std_value(), rel_tol=1e-5)
+        return not is_equal
+
+    def __lt__(self, other):
+        return self.std_value() < other.std_value()
+
+    def __le__(self, other):
+        return self.std_value() <= other.std_value()
+
+    def __gt__(self, other):
+        return self.std_value() > other.std_value()
+
+    def __ge__(self, other):
+        return self.std_value() >= other.std_value()
+
+    def __str__(self):
+        return json.dumps(self.__dict__)
+
 
 class Volume(Quantity):
     def __init__(self, value: float, unit_denote: str):
@@ -27,6 +52,9 @@ class Volume(Quantity):
             return self.value
         elif self.unit_denote == "ul":
             return self.value * 0.001
+
+    def __str__(self):
+        return "value:{} unit:{}".format(self.value, self.unit_denote)
 
 
 class Speed(Quantity):

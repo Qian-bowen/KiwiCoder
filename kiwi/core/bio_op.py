@@ -14,8 +14,9 @@ from .bio_entity import Container, Fluid
 from .bio_periphery import Periphery, MeasureInstrumPeriphery
 from .bio_quantity import Volume, Temperature, Time, Speed
 from kiwi.common import SysStatus, EventName, Msg, MsgEndpoint, MsgLevel, AutoLevel, SysSignal, with_defer, defer, \
-    UserMsg, watch_change, CustomJSONEncoder
+    UserMsg, watch_change
 from kiwi.util import EventBus
+from ..util.encoder import CustomJSONEncoder
 
 bus = EventBus()
 

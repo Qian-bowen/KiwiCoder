@@ -162,6 +162,30 @@ class ScheduleMode(IntEnum):
     GRAPH = 1
 
 
+class MathOp(IntEnum):
+    GT = 0
+    GE = 1
+    EQ = 2
+    NE = 3
+    LT = 4
+    LE = 5
+
+    @staticmethod
+    def compare(left_value, right_value, math_op) -> bool:
+        if math_op == MathOp.GT:
+            return left_value > right_value
+        elif math_op == MathOp.GE:
+            return left_value >= right_value
+        elif math_op == MathOp.EQ:
+            return left_value == right_value
+        elif math_op == MathOp.NE:
+            return left_value != right_value
+        elif math_op == MathOp.LT:
+            return left_value < right_value
+        elif math_op == MathOp.LE:
+            return left_value <= right_value
+
+
 class UserMsg:
     OP_OPERATE_HUMAN_TEMPLATE = "This operation(step:{} op:{}) requires human. Send 'Continue' signal when finish."
     OP_STAGE_START_TEMPLATE = "Step:{} Operation:{} Stage:{} begin."
