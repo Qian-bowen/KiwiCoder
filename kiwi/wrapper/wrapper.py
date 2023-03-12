@@ -1,16 +1,24 @@
 from abc import abstractmethod
 
+from kiwi.common.constant import ContainerType
+
 from kiwi.common import ConstWrapper, ParseParamException
-from kiwi.core.kiwi_sys import ProtocolGeneric
+
+wrapper_raw_t = []
 
 
 class Wrapper:
+
     def __init__(self, wrapper_type, *args, **kwargs):
         """attach the wrapper to environment"""
+        self.id = -1  # same as id in core object
         self.wrapper_type = wrapper_type
         self.args = args
         self.kwargs = kwargs
-        ProtocolGeneric().append_wrapper(wrapper=self)
+        wrapper_raw_t.append(self)
+
+    def get_id(self):
+        return self.id
 
     def get_wrapper_type(self):
         return self.wrapper_type
@@ -69,6 +77,48 @@ class Step(Wrapper):
 
     def package_name(self) -> str:
         return "kiwi.core"
+
+
+# ==================================== #
+#              Bio Entity              #
+# ==================================== #
+
+class Container(Wrapper):
+    def __init__(self, container_type: ContainerType, name="", fluid=None, volume=None):
+        super().__init__(container_type=container_type, name=name, fluid=fluid, volume=volume,
+                         wrapper_type=ConstWrapper.ENTITY_CONTAINER_WRAPPER)
+
+    def package_name(self) -> str:
+        return "kiwi.core.bio_entity"
+
+
+class Column(Wrapper):
+    pass
+
+
+class Slide(Wrapper):
+    pass
+
+
+class Fluid(Wrapper):
+    def __init__(self, name: str, state=None, temp=None, volume=None):
+        super().__init__(name=name, state=state, temp=temp, volume=volume,
+                         wrapper_type=ConstWrapper.ENTITY_FLUID_WRAPPER)
+
+    def package_name(self) -> str:
+        return "kiwi.core.bio_entity"
+
+
+class Solid(Wrapper):
+    pass
+
+
+class Plate(Wrapper):
+    pass
+
+
+class Tissue(Wrapper):
+    pass
 
 
 # ==================================== #
@@ -140,4 +190,3 @@ class PhidgetRelay(ControlPeriphery):
 
     def package_name(self) -> str:
         return super().package_name()
-

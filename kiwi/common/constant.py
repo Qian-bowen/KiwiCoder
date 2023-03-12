@@ -172,6 +172,8 @@ class MathOp(IntEnum):
 
     @staticmethod
     def compare(left_value, right_value, math_op) -> bool:
+        if left_value is None or right_value is None:
+            return False
         if math_op == MathOp.GT:
             return left_value > right_value
         elif math_op == MathOp.GE:
@@ -208,6 +210,8 @@ class Config:
 
 class UserDefined:
     MAIN_PROTOCOL_FUNC = "kiwi_protocol"
+    WATCH_FUNC = "watch"
+    ALARM_FUNC = "alarm"
 
 
 # ==================================== #

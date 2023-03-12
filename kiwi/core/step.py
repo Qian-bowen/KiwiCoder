@@ -17,6 +17,7 @@ class Step(TreeNode):
             step_num: step hierarchy, e.g. 1.2.1
         """
         super().__init__(key=step_name)
+        self.id = -1
         self.name = name
         self.step_name = step_name
         self.wait_list = wait_list

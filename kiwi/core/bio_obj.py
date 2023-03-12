@@ -52,13 +52,14 @@ class BioObject(object):
         if target_attr is None:
             raise AttributeNotExistException(watch_attr)
         self.watch_set.add(watch_attr)
+        print(self.watch_set)
 
-    def add_alarm_attribute(self, alarm_attr: str, math_op: MathOp, threshold_value, default_value) -> None:
+    def add_alarm_attribute(self, alarm_attr: str, math_op: MathOp, threshold_value) -> None:
         target_attr = getattr(self, alarm_attr, None)
         if target_attr is None:
             raise AttributeNotExistException(alarm_attr)
         self.alarm_dict[alarm_attr] = (math_op, threshold_value)
-        setattr(self, alarm_attr, default_value)
+        print(self.alarm_dict)
 
     def _watch(self, name, old_value, value) -> None:
         """ _watch will be called when attributes in @watch_change changes"""

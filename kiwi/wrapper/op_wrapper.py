@@ -1,8 +1,7 @@
 import inspect
 
-from .wrapper import *
+from kiwi.wrapper.wrapper import *
 from kiwi.core.bio_quantity import Volume, Temperature, Time, Speed
-from kiwi.core.bio_entity import Container, Column, Fluid
 from kiwi.common.constant import AutoLevel, PCRType, UntilType
 from kiwi.common import multimethod, ToBeImplementException
 from kiwi.core.bio_entity import Plate

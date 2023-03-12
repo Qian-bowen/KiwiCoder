@@ -2,9 +2,9 @@ from build.lib.kiwi.apps.op_wrapper import dissolve
 from kiwi.core.bio_quantity import Speed, Temperature, Time
 
 from kiwi import Volume
-from kiwi.apps.op_wrapper import measure_fluid, tap, vortex, centrifuge_pellet, comment, start_protocol, end_protocol
+from kiwi.wrapper.op_wrapper import measure_fluid, tap, vortex, centrifuge_pellet, comment, start_protocol, end_protocol
 
-from kiwi.apps.wrapper import Step
+from kiwi.wrapper.wrapper import Step
 
 from kiwi.common.constant import ContainerType
 
