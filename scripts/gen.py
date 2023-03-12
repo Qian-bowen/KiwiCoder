@@ -8,12 +8,18 @@ init_file_content = \
 
 protocol_file_content = \
     "# define experiment protocol in this file\n" \
-    "from kiwi import Step, start_protocol, end_protocol\n\n" \
+    "from kiwi.wrapper import Step, start_protocol, end_protocol\n\n" \
     "def kiwi_protocol():\n" \
     "\t\"\"\" Define experiment protocol. \"\"\"\n" \
     "\tstart_protocol(\"You should rename but do not remove it.\")\n" \
     "\tStep(\"example step 1\", \"sn:1\")\n" \
-    "\tend_protocol()\n\n\n"
+    "\tend_protocol()\n\n\n" \
+    "def watch():\n" \
+    "\twatch_list = []\n" \
+    "\treturn watch_list\n\n\n" \
+    "def alarm():\n" \
+    "\talarm_list = []\n" \
+    "\treturn alarm_list\n\n\n"
 
 override_file_content = \
     "# override core class in this file\n\n"

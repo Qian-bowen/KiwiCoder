@@ -24,6 +24,7 @@ kiwi-gen {your path}
 The project hierarchy is shown as below.
 ```
 ├── keee-weee
+│    ├── report
 │    ├── user
 │       ├── __init__.py
 │    	├── override.py
@@ -132,9 +133,52 @@ kiwi>gen process {file name without suffix}
 
 You can generate your report in html format, with a dot file which contains the experiment graph.
 
+```
+├── ..
+│    ├── report
+│       ├── formal.html
+│    	├── process_graph.dot
+```
+
 
 
 ### Monitor
+
+You can add bio object that required to be monitored just in protocol file.
+
+A watched variable attribute will send message when its value changes.
+
+An alarmed variable attribute will send message when its value exceeds the threshold value.
+
+watch_list is composed of variable name and its attribute.
+
+alarm_list is composed of variable name, attribute, math operation and threshold value.
+
+```python
+# protocol.py
+def watch():
+    watch_list = [
+        ("eppendorf_name", "volume")
+    ]
+    return watch_list
+
+
+def alarm():
+    alarm_list = [
+        ("eppendorf_name", "volume", MathOp.LE, Volume(200, "ml"))
+    ]
+    return alarm_list
+```
+
+You can also monitor with class decorator in self-defined class. Nothing will be overwritten unless the attribute name is same.
+
+```python
+@watch_change(watch_list=["attr1"], alarm_list=[("attr2",MathOp.LE,Any)])
+class Example(BioObject):
+	pass
+```
+
+
 
 
 

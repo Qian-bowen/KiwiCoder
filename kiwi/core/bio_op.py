@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict, List, Callable
 
+from itsdangerous import json
+
 from kiwi.common.constant import ContainerType
 
 from kiwi.util.graph import DAG
@@ -12,12 +14,14 @@ from .bio_entity import Container, Fluid
 from .bio_periphery import Periphery, MeasureInstrumPeriphery
 from .bio_quantity import Volume, Temperature, Time, Speed
 from kiwi.common import SysStatus, EventName, Msg, MsgEndpoint, MsgLevel, AutoLevel, SysSignal, with_defer, defer, \
-    UserMsg
+    UserMsg, watch_change
 from kiwi.util import EventBus
+from ..util.encoder import CustomJSONEncoder
 
 bus = EventBus()
 
 
+@watch_change(watch_list=["status"])
 class BioOp(ABC):
     def __init__(
             self,
@@ -55,8 +59,8 @@ class BioOp(ABC):
         elif auto_level == AutoLevel.HUMAN:
             self.run_funcs = [self._human_run]
 
-    def __str__(self) -> str:
-        return self._pack_op_info()
+    def __str__(self):
+        return json.dumps(self.__dict__)
 
     def delay_init(self, step_name: str, op_index: int, auto_level=AutoLevel.FULL):
         self.step_name = step_name
@@ -72,20 +76,19 @@ class BioOp(ABC):
         while self.status == SysStatus.PENDING:
             ''' sleep to yield cpu to cmd thread '''
             sleep(0.1)
-
+        op_status = SysStatus.SUCCESS
         for func in self.run_funcs:
             BioOp._print_to_screen(msg=UserMsg.OP_STAGE_START_TEMPLATE
                                    .format(self.step_name, self.op_index, func.__name__), level=MsgLevel.INFO)
-            status = func()
-        return SysStatus.SUCCESS
+            op_status = func()
+        self.status = op_status
+        return op_status
 
     @with_defer
     def _run(self) -> SysStatus:
         """ the main stage of run, execute automatically """
-        # defer(lambda: BioOp._print_to_screen(msg=UserMsg.OP_STAGE_END_TEMPLATE
-        #                                      .format(self.step_name, self.op_index, "_run"),
-        #                                      level=MsgLevel.INFO))
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def _human_run(self) -> SysStatus:
         """ notify human to operate """
@@ -108,14 +111,18 @@ class BioOp(ABC):
         BioOp._print_to_screen(msg=UserMsg.OP_SIGNAL_TEMPLATE
                                .format(self.step_name, self.op_index, signal.name), level=MsgLevel.INFO)
 
-    def _pack_op_info(self) -> str:
-        pass
-
     @staticmethod
     def _print_to_screen(msg: str, level: MsgLevel):
         bus.emit(event=EventName.SCREEN_PRINT_EVENT,
                  msg=Msg(msg=msg, source=MsgEndpoint.OP, destinations=[MsgEndpoint.USER_TERMINAL],
                          code=SysStatus.SUCCESS, level=level))
+
+    def _watch(self, name, old_value, value) -> None:
+        """ _watch will be called when attributes in @watch_change changes """
+        dump_dict = {"id": self.id, "name": self.name, "step_name": self.step_name, "op_index": self.op_index,
+                     "key": self.key, "auto_level": self.auto_level, "status": self.status}
+        raw_msg = json.dumps(dump_dict, cls=CustomJSONEncoder)
+        bus.emit(event=EventName.WATCH_EVENT, src=MsgEndpoint.OP, raw_msg=raw_msg)
 
     @staticmethod
     def get_op_identifier(step_name: str, op_index: int) -> str:
@@ -137,6 +144,12 @@ class StartProtocolOp(BioOp):
         super().__init__(step_name, op_index, dependency_graph)
         self.protocol_name = protocol_name
 
+    def _run(self) -> SysStatus:
+        BioOp._print_to_screen(msg=UserMsg.OP_PROTOCOL_START_TEMPLATE.format(self.protocol_name),
+                               level=MsgLevel.IMPORTANT)
+        op_status = SysStatus.SUCCESS
+        return op_status
+
     def get_html_text(self) -> str:
         return "<h1 style=\"font-size = 25px;\">{}</h1>".format(self.protocol_name)
 
@@ -144,6 +157,11 @@ class StartProtocolOp(BioOp):
 class EndProtocolOp(BioOp):
     def __init__(self, step_name: str, op_index: int, dependency_graph: DAG):
         super().__init__(step_name, op_index, dependency_graph)
+
+    def _run(self) -> SysStatus:
+        BioOp._print_to_screen(msg=UserMsg.OP_PROTOCOL_END_TEMPLATE, level=MsgLevel.IMPORTANT)
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         return "</li></p></ol>"
@@ -164,6 +182,9 @@ class DoNothingOp(BioOp):
     def __init__(self, step_name: str, op_index: int, dependency_graph: DAG):
         super().__init__(step_name, op_index, dependency_graph, auto_level=AutoLevel.HUMAN)
 
+    def _run(self) -> SysStatus:
+        return self._human_run()
+
     def get_html_text(self) -> str:
         return ""
 
@@ -174,30 +195,37 @@ class DoNothingOp(BioOp):
 
 
 class MeasureFluidOp(BioOp):
-    def __init__(self, step_name: str, op_index: int, vol: Volume, measure_instrum: MeasureInstrumPeriphery,
-                 drivers: List[Periphery], auto_level=AutoLevel.FULL):
-        super().__init__(step_name=step_name, op_index=op_index, auto_level=auto_level)
-        self.drivers = []
-        self.measure_instrum = measure_instrum
-        self.threshold = vol.std_value()
-        self.drivers = drivers
+    def __init__(self, fluid: Fluid, container: Container, vol: Volume, step_name: str, op_index: int,
+                 dependency_graph: DAG, auto_level=AutoLevel.FULL):
+        super().__init__(step_name, op_index, dependency_graph, auto_level)
+        self.fluid = fluid
+        self.container = container
+        self.vol = vol
+        ''' dependency config '''
+        measured_fluid = Fluid("measure fluid")
+        dependency_graph.add_node(measured_fluid)
+        dependency_graph.add_node(fluid)
+        dependency_graph.add_node(container)
+        dependency_graph.add_edge(fluid, measured_fluid)
+        dependency_graph.add_edge(measured_fluid, container)
 
     @with_defer
     def _run(self) -> SysStatus:
         defer(lambda: BioOp._print_to_screen(msg=UserMsg.OP_STAGE_END_TEMPLATE
                                              .format(self.step_name, self.op_index, "_run"),
                                              level=MsgLevel.INFO))
-        for driver in self.drivers:
-            driver.start()
-        self.measure_instrum.accumulate_read(target=self.threshold, times_in_second=3600, interval=0.1)
-        for driver in self.drivers:
-            driver.shutdown()
-        return SysStatus.SUCCESS
+        print("run measure fluid op, hello world")
+        op_status = SysStatus.SUCCESS
+        return op_status
 
-    @abstractmethod
     def get_html_text(self) -> str:
         """ output the text describe the operation """
-        return ""
+        text_str = "Measure out "
+        if self.vol is not None:
+            text_str += self.vol.text() + " of "
+        text_str += "<font color=#357EC7>{}</font> into {}.<br>" \
+            .format(self.fluid.name, self.container.name)
+        return text_str
 
 
 # ==================================== #
@@ -207,10 +235,10 @@ class MeasureFluidOp(BioOp):
 def _mix_graph_construct(container: Container, dependency_graph: DAG):
     mix_fluid = Fluid("mix")
     dependency_graph.add_node(mix_fluid)
-    dependency_graph.add_node(container.content)
-    dependency_graph.add_edge(container.content, mix_fluid)
     container.content = Container(container_type=ContainerType.FAKE_CONTAINER)
     container.content.name = "container with contents mixed"
+    dependency_graph.add_node(container.content)
+    dependency_graph.add_edge(container.content, mix_fluid)
     dependency_graph.add_node(container.content)
     dependency_graph.add_edge(mix_fluid, container.content)
 
@@ -224,21 +252,41 @@ class VortexOp(BioOp):
 
     def _run(self) -> SysStatus:
         print("run vortex op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
-        return ""
+        return "Vortex the mixture for a few secs.<br>"
+
+
+class TapOp(BioOp):
+    def __init__(self, container: Container, step_name: str, op_index: int, dependency_graph: DAG,
+                 auto_level=AutoLevel.FULL):
+        super().__init__(step_name, op_index, dependency_graph, auto_level)
+        ''' dependency config '''
+        _mix_graph_construct(container, self.dependency_graph)
+
+    def _run(self) -> SysStatus:
+        print("run tap op, hello world")
+        op_status = SysStatus.SUCCESS
+        return op_status
+
+    def get_html_text(self) -> str:
+        """ output the text describe the operation """
+        return "Gently tap the mixture for a few secs.<br>"
 
 
 class DissolveOp(BioOp):
-    def __init__(self, container: Container, step_name: str, op_index: int, dependency_graph: DAG):
-        super().__init__(step_name, op_index, dependency_graph)
+    def __init__(self, container: Container, step_name: str, op_index: int, dependency_graph: DAG,
+                 auto_level=AutoLevel.FULL):
+        super().__init__(step_name, op_index, dependency_graph, auto_level)
         _mix_graph_construct(container, self.dependency_graph)
 
     def _run(self) -> SysStatus:
         print("run dissolve op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
@@ -261,7 +309,8 @@ class StoreOp(BioOp):
 
     def _run(self) -> SysStatus:
         print("run store op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
@@ -279,6 +328,10 @@ class CentrifugePelletOp(BioOp):
     def __init__(self, container: Container, speed: Speed, temp: Temperature, time: Time, step_name: str, op_index: int,
                  dependency_graph: DAG, auto_level=AutoLevel.FULL):
         super().__init__(step_name, op_index, dependency_graph, auto_level)
+        self.container = container
+        self.speed = speed
+        self.temp = temp
+        self.time = time
         ''' dependency config '''
         fluid = Fluid("centrifuge pellet")
         self.dependency_graph.add_node(fluid)
@@ -291,8 +344,12 @@ class CentrifugePelletOp(BioOp):
 
     def _run(self) -> SysStatus:
         print("run centrifuge pellet op, hello world")
-        return SysStatus.SUCCESS
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def get_html_text(self) -> str:
         """ output the text describe the operation """
-        return ""
+        text_str = "Centrifuge " + self.container.name + " at " + self.speed.text() + " for " + self.time.text() \
+                   + "at <b><font color=#357EC7>{}</font></b>, gently aspirate out the supernatant and discard it.<br>" \
+                       .format(self.temp.text())
+        return text_str

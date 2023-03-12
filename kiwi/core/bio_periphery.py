@@ -54,7 +54,7 @@ class InstrumPeriphery(Periphery):
     """ bio instruments, e.g. PCR """
 
     def __init__(self, mock=False, mock_obj=None):
-        super().__init__(mock=mock, mock_obj=mock_obj)
+        super().__init__(name="todo name", mock=mock, mock_obj=mock_obj)
 
     @abstractmethod
     def start(self):

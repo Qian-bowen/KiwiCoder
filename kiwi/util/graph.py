@@ -110,3 +110,5 @@ class DAG:
             return l
         else:
             raise ValueError('not a acyclic graph')
+
+

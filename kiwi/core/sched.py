@@ -22,31 +22,30 @@ class Strategy:
 
 
 class StepController:
-    def __init__(self, schedule_mode: ScheduleMode):
+    def __init__(self, schedule_mode: ScheduleMode, root_step: Step):
         self.step_tree = TreeAryN(sort_func=sort_default)
         self.step_graph = DAG()
         self._schedule_mode = schedule_mode
-        root_step = Step(name="root_step", step_num="0", wait_list=[], children_parallel_list=[], repeat_times=1)
         self.step_tree.add_node(root_step)
         self.step_graph.add_node(root_step)
 
     def add_step_list(self, steps: List[Step]):
         for step in steps:
-            parent_step_key = Step.parent_step(step.step_num)
+            parent_step_key = Step.parent_step(step.step_name)
             self.step_tree.add_node(step, parent_step_key)
 
     def add_step_list_to_graph(self, steps: List[Step]):
         for step in steps:
             self.step_graph.add_node(step)
         for step in steps:
-            parent_step = Step.parent_step(step.step_num)
-            self.step_graph.add_edge_by_key(parent_step, step.step_num)
-            younger_brother_step = Step.brother_step(step.step_num, True)
+            parent_step = Step.parent_step(step.step_name)
+            self.step_graph.add_edge_by_key(parent_step, step.step_name)
+            younger_brother_step = Step.brother_step(step.step_name, True)
             if younger_brother_step is not None:
-                self.step_graph.add_edge_by_key(younger_brother_step, step.step_num)
+                self.step_graph.add_edge_by_key(younger_brother_step, step.step_name)
             wait_list = step.wait_list
             for wait_step_num in wait_list:
-                self.step_graph.add_edge_by_key(wait_step_num, step.step_num)
+                self.step_graph.add_edge_by_key(wait_step_num, step.step_name)
         for step in steps:
             parallel_list = step.children_parallel_list
             for pa_i in parallel_list:

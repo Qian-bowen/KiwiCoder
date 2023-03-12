@@ -12,24 +12,19 @@ class Step(TreeNode):
     Step is the minimum unit for scheduling.
     """
 
-    def __init__(self, name: str, step_num: str, wait_list: [str], children_parallel_list: [str], repeat_times: int):
+    def __init__(self, name: str, step_name: str, wait_list: [str], children_parallel_list: [str], repeat_times: int):
         """
             step_num: step hierarchy, e.g. 1.2.1
         """
-        super().__init__(key=step_num)
+        super().__init__(key=step_name)
+        self.id = -1
         self.name = name
-        self.step_num = step_num
+        self.step_name = step_name
         self.wait_list = wait_list
         self.children_parallel_list = children_parallel_list
         self.repeat_times = repeat_times
         self.operations = []
         self.status = SysStatus.INIT
-
-    def reset(self):
-        self.__init__(step_num=self.step_num,
-                      wait_list=self.wait_list,
-                      children_parallel_list=self.children_parallel_list,
-                      repeat_times=self.repeat_times)
 
     def done(self) -> bool:
         return self.status == SysStatus.DONE
@@ -42,7 +37,7 @@ class Step(TreeNode):
         all_status = SysStatus.DONE
         for step_repeat_time in range(0, self.repeat_times):
             Step._print_to_screen(
-                msg=UserMsg.STEP_START_TEMPLATE.format(self.step_num, self.repeat_times, step_repeat_time))
+                msg=UserMsg.STEP_START_TEMPLATE.format(self.step_name, self.repeat_times, step_repeat_time))
             for op in self.operations:
                 op_status = op.all_stage_run()
                 if op_status != SysStatus.SUCCESS:
@@ -55,7 +50,7 @@ class Step(TreeNode):
                     else:
                         all_status = op_status
                         break
-            Step._print_to_screen(msg=UserMsg.STEP_END_TEMPLATE.format(self.step_num), code=all_status)
+            Step._print_to_screen(msg=UserMsg.STEP_END_TEMPLATE.format(self.step_name), code=all_status)
         self.status = all_status
         return all_status
 
@@ -69,8 +64,8 @@ class Step(TreeNode):
         pass
 
     @staticmethod
-    def parent_step(step_num: str) -> str:
-        seq_nums_list = step_num.split('.')
+    def parent_step(step_name: str) -> str:
+        seq_nums_list = step_name.split('.')
         if len(seq_nums_list) == 1:
             return "0"
         parent_key = ""
@@ -79,8 +74,8 @@ class Step(TreeNode):
         return parent_key[:-1]
 
     @staticmethod
-    def brother_step(step_num: str, younger_one: bool) -> Optional[str]:
-        seq_nums_list = step_num.split('.')
+    def brother_step(step_name: str, younger_one: bool) -> Optional[str]:
+        seq_nums_list = step_name.split('.')
         if len(seq_nums_list) == 1 and seq_nums_list[0] == "0":
             return None
         last_num = seq_nums_list[len(seq_nums_list) - 1]
@@ -102,7 +97,7 @@ class Step(TreeNode):
                          code=code, level=level))
 
     def __str__(self):
-        return self.step_num
+        return self.step_name
 
     def __repr__(self):
-        return self.step_num
+        return self.step_name

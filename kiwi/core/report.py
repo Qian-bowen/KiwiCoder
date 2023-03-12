@@ -35,9 +35,9 @@ class ReportGen:
                              container_list: [Container]) -> None:
         """ generate reagents, equipments and steps """
         f = Path(filename).open("w+")
+        ReportGen._gen_steps(f, seq_steps)
         ReportGen._gen_reagents(f, fluids)
         ReportGen._gen_periphery(f, periphery_list, container_list)
-        ReportGen._gen_steps(f, seq_steps)
         f.close()
 
     @staticmethod

@@ -14,7 +14,7 @@ bus = EventBus()
 
 class Cmd:
     def __init__(self, callback_sys: KiwiSys):
-        self.output = Output(Config.OUTPUT_MSG_BUFFER_SIZE)
+        self.output = Output(Config.OUTPUT_MSG_BUFFER_SIZE, Config.TERMINAL_VISIBLE_LEVEL)
         self.callback_sys = callback_sys
         init()
 
@@ -95,9 +95,10 @@ class Cmd:
 class Output:
     """ output is not thread-safe """
 
-    def __init__(self, buffer_size: int):
+    def __init__(self, buffer_size: int, visible_level=MsgLevel.INFO):
         self.out_buffer = Queue(buffer_size)
         self.can_print = True
+        self.visible_level = visible_level
         bus.add_event(func=self.print_screen, event=EventName.SCREEN_PRINT_EVENT)
 
     def printer(self):
@@ -109,8 +110,9 @@ class Output:
                 sleep(0.5)
 
     def print_screen(self, msg: Msg):
-        raw_str = Output._msg_out_string(msg)
-        self.out_buffer.put(raw_str)
+        if msg.level >= self.visible_level:
+            raw_str = Output._msg_out_string(msg)
+            self.out_buffer.put(raw_str)
 
     def raw_print_screen(self, raw_str: str):
         self.out_buffer.put(raw_str)
@@ -139,4 +141,6 @@ class Output:
         ''' color msg'''
         if msg.level == MsgLevel.IMPORTANT:
             ret = colored(ret, 'red', 'on_cyan')
+        elif msg.level == MsgLevel.WARN:
+            ret = colored(ret, 'red', 'on_green')
         return ret

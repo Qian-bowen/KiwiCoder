@@ -8,6 +8,14 @@ class ConstWrapper(IntEnum):
     OP_WRAPPER = 10
     OP_MEASURE_FLUID_WRAPPER = 11
     OP_STORE_WRAPPER = 12
+    OP_START_PROTOCOL_WRAPPER = 13
+    OP_END_PROTOCOL_WRAPPER = 14
+    OP_DO_NOTHING_WRAPPER = 15
+    OP_COMMENT_WRAPPER = 16
+    OP_VORTEX_WRAPPER = 17
+    OP_TAP_WRAPPER = 18
+    OP_DISSOLVE_WRAPPER = 19
+    OP_CENTRIFUGE_PELLET_WRAPPER = 20
 
     ENTITY_WRAPPER = 1000
     ENTITY_CONTAINER_WRAPPER = 1001
@@ -123,6 +131,7 @@ class MsgEndpoint:
     WATCH = "watch"
     USER_TERMINAL = "user_terminal"
     SYS = "sys"
+    BIO_OBJ = "bio_obj"
 
 
 class EventName:
@@ -131,9 +140,10 @@ class EventName:
     STEP_EVENT = "event:step"
     FATAL_ALARM_EVENT = "event:fatal_alarm"
     SCREEN_PRINT_EVENT = "event:screen:print"
+    WATCH_EVENT = "event:watch"
 
 
-class AutoLevel:
+class AutoLevel(IntEnum):
     HUMAN = 0
     SEMI = 1
     FULL = 2
@@ -152,11 +162,39 @@ class ScheduleMode(IntEnum):
     GRAPH = 1
 
 
+class MathOp(IntEnum):
+    GT = 0
+    GE = 1
+    EQ = 2
+    NE = 3
+    LT = 4
+    LE = 5
+
+    @staticmethod
+    def compare(left_value, right_value, math_op) -> bool:
+        if left_value is None or right_value is None:
+            return False
+        if math_op == MathOp.GT:
+            return left_value > right_value
+        elif math_op == MathOp.GE:
+            return left_value >= right_value
+        elif math_op == MathOp.EQ:
+            return left_value == right_value
+        elif math_op == MathOp.NE:
+            return left_value != right_value
+        elif math_op == MathOp.LT:
+            return left_value < right_value
+        elif math_op == MathOp.LE:
+            return left_value <= right_value
+
+
 class UserMsg:
     OP_OPERATE_HUMAN_TEMPLATE = "This operation(step:{} op:{}) requires human. Send 'Continue' signal when finish."
     OP_STAGE_START_TEMPLATE = "Step:{} Operation:{} Stage:{} begin."
     OP_STAGE_END_TEMPLATE = "Step:{} Operation:{} Stage:{} finish."
     OP_SIGNAL_TEMPLATE = "Step:{} Operation:{} receive signal :{}."
+    OP_PROTOCOL_START_TEMPLATE = "Protocol:{} start"
+    OP_PROTOCOL_END_TEMPLATE = "Protocol end"
     STEP_START_TEMPLATE = "Step:{} begin. Repeat times:{}. Already execute {} times."
     STEP_END_TEMPLATE = "Step:{} finish."
     SYS_SCAN_USER_DEFINED_OVERLOAD_TEMPLATE = "Overload user-defined: {}"
@@ -165,12 +203,15 @@ class UserMsg:
 
 class Config:
     OUTPUT_MSG_BUFFER_SIZE = 100
+    TERMINAL_VISIBLE_LEVEL = MsgLevel.GOSSIP
     USER_DEFINED_PACKAGE = "user"
     CORE_OP_PACKAGE = "kiwi.core.bio_op"
 
 
 class UserDefined:
     MAIN_PROTOCOL_FUNC = "kiwi_protocol"
+    WATCH_FUNC = "watch"
+    ALARM_FUNC = "alarm"
 
 
 # ==================================== #

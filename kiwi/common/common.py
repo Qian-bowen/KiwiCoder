@@ -1,8 +1,15 @@
 import inspect
 import sys
 from functools import wraps
-from typing import Callable
+from typing import Callable, Any
 
+from kiwi.common import MathOp
+from kiwi.common.exception import MethodNotExistException
+
+
+# ==================================== #
+#          Python decorator            #
+# ==================================== #
 
 def defer(x):
     for f in inspect.stack():
@@ -104,28 +111,99 @@ class MultiMethod(object):
         self.type_map = {}
 
     def __call__(self, *args):
-        types = tuple(arg.__class__ for arg in args)
-        function = self.type_map.get(types)
+        types = tuple(type(arg) for arg in args)
+        # print("types when call:{}".format(types))
+        function = self.type_map.get(types, None)
         if function is None:
             raise TypeError("no match")
         return function(*args)
 
-    def register(self, types, function):
-        if types in self.type_map:
-            raise TypeError("duplicate register")
-        self.type_map[types] = function
+    def register(self, method):
+        sig = inspect.signature(method)
+        types = []
+        for name, parm in sig.parameters.items():
+            if parm.default is not inspect.Parameter.empty:
+                self.type_map[tuple(types)] = method
+                # print("types when register:{}".format(types))
+            types.append(parm.annotation)
+        self.type_map[tuple(types)] = method
+        # print("types when register:{}".format(types))
 
 
 def multimethod(*types):
     """ support overload for python function """
+
     def register(function):
         function = getattr(function, "__lastreg__", function)
         name = function.__name__
         mm = registry.get(name)
         if mm is None:
             mm = registry[name] = MultiMethod(name)
-        mm.register(types, function)
+        mm.register(function)
         mm.__lastreg__ = function
         return mm
 
     return register
+
+
+def watch_change(watch_list: [str] = None, alarm_list: [(str, MathOp, Any)] = None):
+    """
+    monitor the class attributes, and call _watch method in class when change.
+    call _alarm when attribute change exceeds the threshold.
+    alarm_list is composed of list of tuple, with name, math operation and threshold value
+    """
+
+    def __decorator__(cls):
+        # print("type:{} watch list:{} alarm list:{}".format(type(cls), watch_list, alarm_list))
+        watch_attr_set = set()
+        alarm_attr_dict = dict()
+        if watch_list is not None:
+            watch_attr_set = set(attr for attr in watch_list)
+        if alarm_list is not None:
+            for alarm_raw in alarm_list:
+                alarm_attr_dict[alarm_raw[0]] = (alarm_raw[1], alarm_raw[2])
+
+        _sentinel = object()
+        cls_setattr = getattr(cls, '__setattr__', None)
+        cls_watch = getattr(cls, '_watch', None)
+        cls_alarm = getattr(cls, '_alarm', None)
+        cls_watch_set = getattr(cls, 'watch_set', None)
+        cls_alarm_dict = getattr(cls, 'alarm_dict', None)
+        if cls_watch_set is None:
+            setattr(cls, 'watch_set', set())
+            cls_watch_set = getattr(cls, 'watch_set', None)
+        if cls_alarm_dict is None:
+            setattr(cls, 'alarm_dict', dict())
+            cls_alarm_dict = getattr(cls, 'alarm_dict', None)
+
+        for elem in watch_attr_set:
+            cls_watch_set.add(elem)
+        for k, v in alarm_attr_dict.items():
+            cls_alarm_dict[k] = v
+
+        setattr(cls, 'watch_set', cls_watch_set)
+        setattr(cls, 'alarm_dict', cls_alarm_dict)
+        # print("after set:{} dict:{}".format(cls_watch_set, cls_alarm_dict))
+
+        def __setattr__(self, name, value):
+            # print("runtime set:{} dict:{}".format(cls.watch_set, cls.alarm_dict))
+            if name in cls.watch_set:
+                old_value = getattr(self, name, _sentinel)
+                if old_value is not _sentinel and old_value != value:
+                    if cls_watch is None:
+                        raise MethodNotExistException("_watch")
+                    cls_watch(self, name, old_value, value)
+            if name in cls.alarm_dict:
+                math_op = cls.alarm_dict[name][0]
+                threshold_value = cls.alarm_dict[name][1]
+                if MathOp.compare(value, threshold_value, math_op):
+                    if cls_alarm is None:
+                        raise MethodNotExistException("_alarm")
+                    cls_alarm(self, name, value, threshold_value, math_op)
+            cls_setattr(self, name, value)
+
+        cls.__setattr__ = __setattr__
+        return cls
+
+    return __decorator__
+
