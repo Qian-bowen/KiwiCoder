@@ -19,7 +19,11 @@ protocol_file_content = \
     "\treturn watch_list\n\n\n" \
     "def alarm():\n" \
     "\talarm_list = []\n" \
-    "\treturn alarm_list\n\n\n"
+    "\treturn alarm_list\n\n\n" \
+    "def mock():\n" \
+    "\tmock_bio_obj_list = {}\n" \
+    "\tmock_op_list = {}\n" \
+    "\treturn mock_bio_obj_list, mock_op_list\n\n\n"
 
 override_file_content = \
     "# override core class in this file\n\n"

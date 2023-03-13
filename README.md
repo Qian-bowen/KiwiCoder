@@ -119,10 +119,6 @@ kiwi>gen process {file name without suffix}
 
 
 
-#### Mock & Self-Defined Operation
-
-
-
 ### Bio Object
 
 
@@ -177,6 +173,57 @@ You can also monitor with class decorator in self-defined class. Nothing will be
 class Example(BioObject):
 	pass
 ```
+
+**ATTENTION:**  ALL monitored variables need to be assigned name explicitly when they initialize as shown below.
+
+```python
+eppendorf = Container(ContainerType.EPPENDORF, name="eppendorf_name")
+```
+
+
+
+### Mock
+
+You can mock both bio obj and operation in protocol in `mock` function in `protocol.py`.
+
+```python
+# protocol.py
+def mock():
+    mock_bio_obj_list = {"INCLUDE": ["eppendorf_name"]}
+    mock_op_list = {"INCLUDE": ["$ALL$"], "EXCLUDE": ["sn:1,op:0"]}
+    return mock_bio_obj_list, mock_op_list
+```
+
+ALL mocked variables need to be assigned name explicitly when they initialize.
+
+#### Mock Operation
+
+When an operation is mocked, `_mock_run` will be executed when the operation runs instead of `_run`. 
+
+#### Mock Bio Object
+
+You can also mock by decorator `@class_mock_enable`. This annotation enables you to specify a function with mock prefix and suffix `__mock_{real func name}__` . When the bio object is in mock status, the mock function will be executed instead of the non-mock one.
+
+```python
+@class_mock_enable
+class FlowMeter(MeasureInstrumPeriphery):
+    def __init__(self, mock=False, mock_obj=None):
+        super().__init__(mock=mock, mock_obj=mock_obj)
+
+    def read(self) -> Optional[float]:
+        pass
+
+    def __mock_read__(self) -> Optional[float]:
+        pass
+```
+
+#### 
+
+
+
+
+
+### Customize Class
 
 
 

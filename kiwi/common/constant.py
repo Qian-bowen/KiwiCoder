@@ -88,6 +88,12 @@ class ConstWrapper(IntEnum):
         return final_name + "Op"
 
 
+class PeripheryType(IntEnum):
+    BASE_TYPE = 0
+    DRIVER_SIGNAL_TYPE = 1000
+    MEASURE_INSTRUM_TYPE = 2000
+
+
 class SysStatus(IntEnum):
     FAIL = 0
     SUCCESS = 1
@@ -192,6 +198,8 @@ class UserMsg:
     OP_OPERATE_HUMAN_TEMPLATE = "This operation(step:{} op:{}) requires human. Send 'Continue' signal when finish."
     OP_STAGE_START_TEMPLATE = "Step:{} Operation:{} Stage:{} begin."
     OP_STAGE_END_TEMPLATE = "Step:{} Operation:{} Stage:{} finish."
+    OP_MOCK_START_TEMPLATE = "[MOCK] Step:{} Operation:{} Stage:{} begin."
+    OP_MOCK_END_TEMPLATE = "[MOCK] Step:{} Operation:{} Stage:{} finish."
     OP_SIGNAL_TEMPLATE = "Step:{} Operation:{} receive signal :{}."
     OP_PROTOCOL_START_TEMPLATE = "Protocol:{} start"
     OP_PROTOCOL_END_TEMPLATE = "Protocol end"
@@ -212,6 +220,13 @@ class UserDefined:
     MAIN_PROTOCOL_FUNC = "kiwi_protocol"
     WATCH_FUNC = "watch"
     ALARM_FUNC = "alarm"
+    MOCK_FUNC = "mock"
+
+
+class PlaceHolder:
+    ALL = "$ALL$"
+    INCLUDE = "INCLUDE"
+    EXCLUDE = "EXCLUDE"
 
 
 # ==================================== #

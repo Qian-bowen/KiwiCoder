@@ -1,20 +1,21 @@
+import json
 from abc import ABC, abstractmethod
 from time import sleep
 from typing import Dict, List, Callable
 
-from itsdangerous import json
+from kiwi.common.exception import ToBeImplementException
 
-from kiwi.common.constant import ContainerType
+from kiwi.common.constant import ContainerType, PeripheryType
 
 from kiwi.util.graph import DAG
 
 from kiwi.core.bio_obj import BioObject
 from .bio_entity import Container, Fluid
 
-from .bio_periphery import Periphery, MeasureInstrumPeriphery
+from .bio_periphery import Periphery
 from .bio_quantity import Volume, Temperature, Time, Speed
 from kiwi.common import SysStatus, EventName, Msg, MsgEndpoint, MsgLevel, AutoLevel, SysSignal, with_defer, defer, \
-    UserMsg, watch_change
+    UserMsg, watch_change, PeripheryOpException
 from kiwi.util import EventBus
 from ..util.encoder import CustomJSONEncoder
 
@@ -44,9 +45,10 @@ class BioOp(ABC):
         self.key = BioOp.get_op_identifier(self.step_name, self.op_index)
         self.auto_level = auto_level
         self.dependency_graph = dependency_graph
-        self.periphery_dict = Dict[int, Periphery]
+        self.periphery_dict = Dict[PeripheryType, List[Periphery]]
         self.bio_obj_dict = Dict[int, BioObject]
         self.status = SysStatus.INIT
+        self.mock = False
         self.run_funcs = List[Callable]
 
         bus.add_event(func=self._signal_handler,
@@ -68,7 +70,7 @@ class BioOp(ABC):
         self.auto_level = auto_level
 
     def attach_periphery(self, periphery: Periphery) -> None:
-        self.periphery_dict[periphery.get_id_um()] = periphery
+        self.periphery_dict[periphery.periphery_type].append(periphery)
         return
 
     def all_stage_run(self) -> SysStatus:
@@ -77,10 +79,16 @@ class BioOp(ABC):
             ''' sleep to yield cpu to cmd thread '''
             sleep(0.1)
         op_status = SysStatus.SUCCESS
-        for func in self.run_funcs:
-            BioOp._print_to_screen(msg=UserMsg.OP_STAGE_START_TEMPLATE
-                                   .format(self.step_name, self.op_index, func.__name__), level=MsgLevel.INFO)
-            op_status = func()
+        ''' run mock function if mock is set '''
+        if self.mock:
+            BioOp._print_to_screen(msg=UserMsg.OP_MOCK_START_TEMPLATE
+                                   .format(self.step_name, self.op_index, "_mock"), level=MsgLevel.INFO)
+            op_status = self._mock_run()
+        else:
+            for func in self.run_funcs:
+                BioOp._print_to_screen(msg=UserMsg.OP_STAGE_START_TEMPLATE
+                                       .format(self.step_name, self.op_index, func.__name__), level=MsgLevel.INFO)
+                op_status = func()
         self.status = op_status
         return op_status
 
@@ -99,6 +107,12 @@ class BioOp(ABC):
             ''' sleep to yield cpu to cmd thread '''
             sleep(0.1)
         return SysStatus.SUCCESS
+
+    @with_defer
+    def _mock_run(self) -> SysStatus:
+        """ mock the operation """
+        op_status = SysStatus.SUCCESS
+        return op_status
 
     def _signal_handler(self, signal: SysSignal) -> None:
         if signal == SysSignal.RUN:
@@ -126,7 +140,7 @@ class BioOp(ABC):
 
     @staticmethod
     def get_op_identifier(step_name: str, op_index: int) -> str:
-        return step_name + " " + str(op_index)
+        return "sn:"+step_name + ",op:" + str(op_index)
 
     @abstractmethod
     def get_html_text(self) -> str:
@@ -214,7 +228,17 @@ class MeasureFluidOp(BioOp):
         defer(lambda: BioOp._print_to_screen(msg=UserMsg.OP_STAGE_END_TEMPLATE
                                              .format(self.step_name, self.op_index, "_run"),
                                              level=MsgLevel.INFO))
-        print("run measure fluid op, hello world")
+        """ search for drivers, and stop drivers until read threshold value """
+        drivers = self.periphery_dict[PeripheryType.DRIVER_SIGNAL_TYPE]
+        measure_instrums = self.periphery_dict[PeripheryType.MEASURE_INSTRUM_TYPE]
+        if len(drivers) == 0 or len(measure_instrums) != 1:
+            raise PeripheryOpException(self.name)
+        for driver in drivers:
+            driver.start()
+        result_value = measure_instrums[0].accumulate_read(self.vol.value, 3600)
+        BioOp._print_to_screen(msg="Measure fluid {}".format(result_value), level=MsgLevel.GOSSIP)
+        for driver in drivers:
+            driver.shutdown()
         op_status = SysStatus.SUCCESS
         return op_status
 

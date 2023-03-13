@@ -15,7 +15,7 @@ from kiwi.core.bio_obj import BioObject
 from typing import Dict, Callable
 from kiwi.core.sched import StepController
 from kiwi.common import singleton, ConstWrapper, ScheduleMode, ModuleNotFoundException, ClassNotFoundException, Config, \
-    SysStatus, MsgLevel, MsgEndpoint, EventName, Msg, UserMsg, UserDefined
+    SysStatus, MsgLevel, MsgEndpoint, EventName, Msg, UserMsg, UserDefined, BioObjNotExistException, PlaceHolder
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 from kiwi.util import EventBus
@@ -40,6 +40,11 @@ class ProtocolGeneric:
         self.id_core_map = dict()
         self.dependency_graph_generic = DAG()
         self.overload_core_obj = set()
+        ''' config '''
+        self.watch_list = []
+        self.alarm_list = []
+        self.mock_bio_obj_map = {}
+        self.mock_op_map = {}
 
     def add_overload_obj(self, overload_name: str) -> None:
         self.overload_core_obj.add(overload_name)
@@ -50,14 +55,19 @@ class ProtocolGeneric:
     def build_wrapper(self):
         for wrapper in self.wrappers:
             self._wrapper2core(*wrapper.args, **wrapper.kwargs, wrapper=wrapper)
+        self._build_monitor()
+        self._build_mock()
 
-    def attach_monitor(self, watch_list, alarm_list):
+    def _build_monitor(self):
+        """ attach monitor after core is built """
+        watch_list = self.watch_list
+        alarm_list = self.alarm_list
         for watch_raw in watch_list:
             bio_obj_name = watch_raw[0]
             bio_obj_attr = watch_raw[1]
             bio_obj = self._get_bio_obj_by_name(bio_obj_name)
             if bio_obj is None:
-                continue
+                raise BioObjNotExistException(bio_obj_name)
             bio_obj.add_watch_attribute(bio_obj_attr)
         for alarm_raw in alarm_list:
             bio_obj_name = alarm_raw[0]
@@ -66,8 +76,52 @@ class ProtocolGeneric:
             threshold_value = alarm_raw[3]
             bio_obj = self._get_bio_obj_by_name(bio_obj_name)
             if bio_obj is None:
-                continue
+                raise BioObjNotExistException(bio_obj_name)
             bio_obj.add_alarm_attribute(bio_obj_attr, operator, threshold_value)
+
+    def _build_mock(self):
+        """ set mock status after build core """
+        mock_bio_obj_map = self.mock_bio_obj_map
+        bio_obj_include_list = mock_bio_obj_map[PlaceHolder.INCLUDE]
+        bio_obj_exclude_list = mock_bio_obj_map[PlaceHolder.EXCLUDE]
+        bio_obj_exclude_set = set()
+        ''' handle bio object mock '''
+        for bio_obj_exclude in bio_obj_exclude_list:
+            bio_obj_exclude_set.add(bio_obj_exclude)
+        if len(bio_obj_include_list) == 1 and bio_obj_include_list[0] == PlaceHolder.ALL:
+            bio_obj_all = self._get_all_bio_obj()
+            for bio_obj in bio_obj_all:
+                if bio_obj.name not in bio_obj_exclude_set:
+                    bio_obj.mock = True
+        else:
+            for bio_obj_name in bio_obj_include_list:
+                bio_obj = self._get_bio_obj_by_name(bio_obj_name)
+                if bio_obj is None:
+                    raise BioObjNotExistException(bio_obj_name)
+                bio_obj.mock = True
+        ''' handle operation mock '''
+        mock_op_map = self.mock_op_map
+        op_include_list = mock_op_map[PlaceHolder.INCLUDE]
+        op_exclude_list = mock_op_map[PlaceHolder.EXCLUDE]
+        op_exclude_set = set()
+        for op_exclude in op_exclude_list:
+            op_exclude_set.add(op_exclude)
+        if len(op_include_list) == 1 and op_include_list[0] == PlaceHolder.ALL:
+            for step in self.steps_generic:
+                for op in step.operations:
+                    key = op.key
+                    if key not in op_exclude_set:
+                        op.mock = True
+        else:
+            for op_key in op_include_list:
+                ''' op key format like sn:1,op:0 '''
+                param_list = op_key.split(',')
+                step_name = param_list[0][3:]
+                op_index_str = param_list[1][3:]
+                op_idx = int(op_index_str)
+                for step in self.steps_generic:
+                    if step_name == step.name:
+                        step.operations[op_idx].mock = True
 
     def _get_bio_obj_by_name(self, name):
         for bio_obj in self.fluid_generic:
@@ -80,6 +134,13 @@ class ProtocolGeneric:
             if bio_obj.name == name:
                 return bio_obj
         return None
+
+    def _get_all_bio_obj(self):
+        ret = []
+        ret.extend(self.fluid_generic)
+        ret.extend(self.periphery_generic)
+        ret.extend(self.container_generic)
+        return ret
 
     def _wrapper2core(self, wrapper, *args, **kwargs):
         if ConstWrapper.is_op_wrapper(wrapper.get_wrapper_type()):
@@ -171,7 +232,7 @@ class KiwiSys:
         kiwi_protocol()
         self._load_wrapper_to_core()
         self._load_user_defined_package()
-        self._load_monitor()
+        self._load_monitor_config()
 
     def run_task(self):
         task_thread = Thread(target=self._thread_run_task)
@@ -239,11 +300,19 @@ class KiwiSys:
         for wrapper in wrapper_list:
             ProtocolGeneric().append_wrapper(wrapper)
 
-    def _load_monitor(self):
-        """scan steps and build process graph"""
-        watch_list = import_dynamic(Config.USER_DEFINED_PACKAGE, UserDefined.WATCH_FUNC)
-        alarm_list = import_dynamic(Config.USER_DEFINED_PACKAGE, UserDefined.ALARM_FUNC)
-        ProtocolGeneric().attach_monitor(watch_list(), alarm_list())
+    def _load_monitor_config(self):
+        """ load user-defined watch and alarm attribute """
+        watch_list_func = import_dynamic(Config.USER_DEFINED_PACKAGE, UserDefined.WATCH_FUNC)
+        alarm_list_func = import_dynamic(Config.USER_DEFINED_PACKAGE, UserDefined.ALARM_FUNC)
+        ProtocolGeneric().watch_list = watch_list_func()
+        ProtocolGeneric().alarm_list = alarm_list_func()
+
+    def _load_mock_config(self):
+        """ load mock bio object and operation """
+        mock_func = import_dynamic(Config.USER_DEFINED_PACKAGE, UserDefined.MOCK_FUNC)
+        mock_bio_obj_map, mock_op_map = mock_func()
+        ProtocolGeneric().mock_bio_obj_map = mock_bio_obj_map
+        ProtocolGeneric().mock_op_map = mock_op_map
 
     def _load_user_defined_package(self):
         """ all user defined function or class name into system """

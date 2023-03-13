@@ -12,3 +12,4 @@ class Pump(SignalPeriphery):
 
     def shutdown(self):
         self.attach_to.unset_signal(self.id)
+

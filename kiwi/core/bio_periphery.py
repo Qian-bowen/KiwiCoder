@@ -2,12 +2,14 @@ from abc import abstractmethod
 from typing import Optional
 from time import sleep
 
-from .bio_obj import BioObject
+from kiwi.core.bio_obj import BioObject
+from kiwi.common import PeripheryType
 
 
 class Periphery(BioObject):
     def __init__(self, name: str, mock=False, mock_obj=None):
         super().__init__(name=name, mock=mock, mock_obj=mock_obj)
+        self.periphery_type = PeripheryType.BASE_TYPE
 
     @abstractmethod
     def start(self):
@@ -26,7 +28,7 @@ class ControlPeriphery(Periphery):
     """ center hardware that controls other periphery, e.g. Raspberry Pi"""
 
     def __init__(self, mock=False, mock_obj=None):
-        super().__init__(mock=mock, mock_obj=mock_obj)
+        super().__init__(name="todo name", mock=mock, mock_obj=mock_obj)
 
     @abstractmethod
     def start(self):
@@ -71,7 +73,7 @@ class SignalPeriphery(Periphery):
     """
 
     def __init__(self, control_periphery: ControlPeriphery, mock=False, mock_obj=None):
-        super().__init__(mock=mock, mock_obj=mock_obj)
+        super().__init__(name="todo name", mock=mock, mock_obj=mock_obj)
         self.attach_to = control_periphery
 
     @abstractmethod
@@ -90,6 +92,7 @@ class SignalPeriphery(Periphery):
 class MeasureInstrumPeriphery(InstrumPeriphery):
     def __init__(self, mock=False, mock_obj=None):
         super().__init__(mock=mock, mock_obj=mock_obj)
+        self.periphery_type = PeripheryType.MEASURE_INSTRUM_TYPE
 
     def start(self):
         pass
